@@ -4,6 +4,8 @@
 <link rel="manifest" href="manifest.json">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#020617">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Speedometer</title>
 
@@ -28,7 +30,7 @@ html, body {
 
 body {
   background:
-    radial-gradient(circle at top, rgba(56,189,248,.18), transparent 35%),
+    radial-gradient(circle at top, rgba(56,189,248,.18), transparent 36%),
     linear-gradient(180deg, #111827, #020617);
 }
 
@@ -41,40 +43,37 @@ body {
 }
 
 .speed-card {
-  flex: 0 0 auto;
   text-align: center;
-  padding-top: 38px;
+  padding-top: 34px;
 }
 
 .speed {
-  font-size: clamp(76px, 22vw, 130px);
-  font-weight: 800;
-  letter-spacing: -3px;
+  font-size: clamp(82px, 24vw, 132px);
+  font-weight: 850;
+  letter-spacing: -4px;
   line-height: .9;
 }
 
 .unit {
-  margin-top: 8px;
+  margin-top: 10px;
   font-size: 18px;
   opacity: .55;
 }
 
 .status {
-  margin-top: 16px;
-  font-size: 14px;
-  opacity: .65;
+  display: none;
 }
 
 .btn {
-  margin-top: 22px;
-  padding: 13px 30px;
+  margin-top: 24px;
+  padding: 14px 34px;
   border: none;
   border-radius: 999px;
   color: white;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   background: linear-gradient(135deg, #22d3ee, #6366f1);
-  box-shadow: 0 14px 40px rgba(56,189,248,.25);
+  box-shadow: 0 14px 40px rgba(56,189,248,.28);
 }
 
 .btn:active {
@@ -88,45 +87,39 @@ body {
 }
 
 .info-card {
-  min-height: 86px;
-  padding: 14px;
-  border-radius: 22px;
+  min-height: 88px;
+  padding: 15px;
+  border-radius: 24px;
   background: rgba(255,255,255,.075);
-  border: 1px solid rgba(255,255,255,.11);
+  border: 1px solid rgba(255,255,255,.12);
   backdrop-filter: blur(18px);
-  box-shadow: 0 12px 30px rgba(0,0,0,.18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 14px 34px rgba(0,0,0,.22);
 }
 
 .label {
-  font-size: 11px;
+  font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: .08em;
+  letter-spacing: .1em;
   opacity: .45;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .value {
-  font-size: 15px;
-  font-weight: 650;
+  font-size: 16px;
+  font-weight: 750;
   line-height: 1.25;
   word-break: break-word;
-}
-
-.sub {
-  margin-top: 5px;
-  font-size: 11px;
-  opacity: .45;
 }
 
 .map-card {
   position: relative;
   flex: 1;
-  min-height: 210px;
-  border-radius: 28px;
+  min-height: 230px;
+  border-radius: 30px;
   overflow: hidden;
-  background: rgba(255,255,255,.07);
-  border: 1px solid rgba(255,255,255,.12);
-  box-shadow: 0 20px 50px rgba(0,0,0,.28);
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.13);
+  box-shadow: 0 22px 54px rgba(0,0,0,.32);
 }
 
 .map-card iframe {
@@ -136,38 +129,21 @@ body {
   pointer-events: none;
 }
 
-.map-pin {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 18px;
-  height: 18px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: #38bdf8;
-  border: 4px solid white;
-  box-shadow: 0 0 0 10px rgba(56,189,248,.22);
-}
-
 .map-label {
   position: absolute;
   left: 14px;
   top: 14px;
-  padding: 8px 11px;
+  z-index: 2;
+  padding: 8px 12px;
   border-radius: 999px;
   font-size: 12px;
-  background: rgba(2,6,23,.72);
+  background: rgba(2,6,23,.76);
   backdrop-filter: blur(12px);
 }
 
 @media (max-height: 720px) {
-  .speed-card {
-    padding-top: 18px;
-  }
-
-  .map-card {
-    min-height: 160px;
-  }
+  .speed-card { padding-top: 18px; }
+  .map-card { min-height: 170px; }
 }
 </style>
 </head>
@@ -178,7 +154,7 @@ body {
   <section class="speed-card">
     <div id="speed" class="speed">0.00</div>
     <div class="unit">km/h</div>
-    <div id="status" class="status">Tap start to begin</div>
+    <div id="status" class="status"></div>
     <button id="startBtn" class="btn" onclick="startTracking()">Start Tracking</button>
   </section>
 
@@ -186,20 +162,17 @@ body {
     <div class="info-card">
       <div class="label">Nearest Station</div>
       <div id="station" class="value">Waiting...</div>
-      <div id="stationSub" class="sub">Railway station nearby</div>
     </div>
 
     <div class="info-card">
       <div class="label">Current Location</div>
       <div id="location" class="value">Waiting...</div>
-      <div id="locationSub" class="sub">Area / city</div>
     </div>
   </section>
 
   <section class="map-card">
-    <div class="map-label">Live location preview</div>
+    <div class="map-label">Location preview</div>
     <iframe id="map" loading="lazy"></iframe>
-    <div class="map-pin"></div>
   </section>
 </div>
 
@@ -207,28 +180,23 @@ body {
 let lastSpeed = 0;
 let watchId = null;
 let lastLookupTime = 0;
-let lastMapUpdate = 0;
-let lastLat = null;
-let lastLon = null;
+let lastMapLat = null;
+let lastMapLon = null;
 
 const speedEl = document.getElementById("speed");
-const statusEl = document.getElementById("status");
 const stationEl = document.getElementById("station");
-const stationSubEl = document.getElementById("stationSub");
 const locationEl = document.getElementById("location");
-const locationSubEl = document.getElementById("locationSub");
 const mapEl = document.getElementById("map");
 const startBtn = document.getElementById("startBtn");
 
 function startTracking() {
   if (!navigator.geolocation) {
-    updateStatus("GPS not supported");
+    startBtn.textContent = "GPS not supported";
     return;
   }
 
   startBtn.textContent = "Tracking";
   startBtn.disabled = true;
-  updateStatus("Requesting location...");
 
   watchId = navigator.geolocation.watchPosition(
     updatePosition,
@@ -242,22 +210,19 @@ function startTracking() {
 }
 
 function updatePosition(position) {
-  const { latitude, longitude, speed, accuracy } = position.coords;
-
-  lastLat = latitude;
-  lastLon = longitude;
+  const { latitude, longitude, speed } = position.coords;
 
   updateSpeed(speed);
-  updateStatus(`Tracking • ±${Math.round(accuracy)}m`);
 
   const now = Date.now();
 
-  if (now - lastMapUpdate > 5000) {
+  if (!lastMapLat || getDistanceKm(latitude, longitude, lastMapLat, lastMapLon) > 0.15) {
     updateMap(latitude, longitude);
-    lastMapUpdate = now;
+    lastMapLat = latitude;
+    lastMapLon = longitude;
   }
 
-  if (now - lastLookupTime > 30000) {
+  if (now - lastLookupTime > 45000) {
     updateLocationInfo(latitude, longitude);
     lastLookupTime = now;
   }
@@ -272,11 +237,9 @@ function updateSpeed(speed) {
 
   lastSpeed += (kmh - lastSpeed) * 0.22;
 
-  if (lastSpeed < 1) {
-    speedEl.textContent = lastSpeed.toFixed(2);
-  } else {
-    speedEl.textContent = Math.round(lastSpeed);
-  }
+  speedEl.textContent = lastSpeed < 1
+    ? lastSpeed.toFixed(2)
+    : Math.round(lastSpeed);
 }
 
 async function updateLocationInfo(lat, lon) {
@@ -291,61 +254,46 @@ async function updateLocationInfo(lat, lon) {
 
 async function updateCurrentLocation(lat, lon) {
   try {
-    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`;
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=16&addressdetails=1`;
     const res = await fetch(url);
     const data = await res.json();
     const a = data.address || {};
 
-    const main =
+    const place =
       a.neighbourhood ||
       a.suburb ||
       a.quarter ||
-      a.road ||
       a.village ||
       a.town ||
       a.city ||
-      a.county ||
-      "Location found";
-
-    const sub =
-      a.city ||
-      a.town ||
-      a.village ||
       a.state_district ||
       a.state ||
-      "";
+      "Location found";
 
-    locationEl.textContent = main;
-    locationSubEl.textContent = sub || "Current GPS area";
+    locationEl.textContent = place;
   } catch {
-    locationEl.textContent = "Unavailable";
-    locationSubEl.textContent = "Check internet connection";
+    locationEl.textContent = "Location unavailable";
   }
 }
 
 async function updateNearestStation(lat, lon) {
   try {
     const query = `
-      [out:json][timeout:12];
+      [out:json][timeout:25];
       (
-        node(around:10000,${lat},${lon})["railway"="station"];
-        node(around:10000,${lat},${lon})["railway"="halt"];
-        way(around:10000,${lat},${lon})["railway"="station"];
-        relation(around:10000,${lat},${lon})["railway"="station"];
+        node(around:15000,${lat},${lon})["railway"~"station|halt|stop"];
+        way(around:15000,${lat},${lon})["railway"~"station|halt|stop"];
+        relation(around:15000,${lat},${lon})["railway"~"station|halt|stop"];
       );
       out center tags;
     `;
 
-    const res = await fetch("https://overpass-api.de/api/interpreter", {
-      method: "POST",
-      body: query
-    });
-
+    const url = "https://overpass-api.de/api/interpreter?data=" + encodeURIComponent(query);
+    const res = await fetch(url);
     const data = await res.json();
 
     if (!data.elements || data.elements.length === 0) {
-      stationEl.textContent = "Not found nearby";
-      stationSubEl.textContent = "Searched within 10 km";
+      stationEl.textContent = "No station nearby";
       return;
     }
 
@@ -353,26 +301,23 @@ async function updateNearestStation(lat, lon) {
       .map(item => {
         const sLat = item.lat || item.center?.lat;
         const sLon = item.lon || item.center?.lon;
+
         return {
-          name: item.tags?.name || "Nearby Station",
+          name: item.tags?.name || item.tags?.["name:en"] || "Nearby station",
           distance: getDistanceKm(lat, lon, sLat, sLon)
         };
       })
-      .filter(item => !isNaN(item.distance))
+      .filter(item => item.name && !isNaN(item.distance))
       .sort((a, b) => a.distance - b.distance);
 
-    const nearest = stations[0];
-
-    stationEl.textContent = nearest.name;
-    stationSubEl.textContent = `${nearest.distance.toFixed(1)} km away`;
+    stationEl.textContent = stations[0]?.name || "Station found";
   } catch {
-    stationEl.textContent = "Unavailable";
-    stationSubEl.textContent = "Station lookup failed";
+    stationEl.textContent = "Station unavailable";
   }
 }
 
 function updateMap(lat, lon) {
-  const delta = 0.006;
+  const delta = 0.0045;
   const left = lon - delta;
   const right = lon + delta;
   const top = lat + delta;
@@ -383,6 +328,8 @@ function updateMap(lat, lon) {
 }
 
 function getDistanceKm(lat1, lon1, lat2, lon2) {
+  if (!lat2 || !lon2) return NaN;
+
   const R = 6371;
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
@@ -402,19 +349,10 @@ function toRad(value) {
 
 function handleError(err) {
   startBtn.disabled = false;
-  startBtn.textContent = "Start Tracking";
-
-  if (err.code === 1) {
-    updateStatus("Location permission denied");
-  } else if (err.code === 2) {
-    updateStatus("Location unavailable");
-  } else {
-    updateStatus("GPS timeout. Try outdoors");
-  }
-}
-
-function updateStatus(text) {
-  statusEl.textContent = text;
+  startBtn.textContent =
+    err.code === 1 ? "Allow Location" :
+    err.code === 2 ? "Location Error" :
+    "Try Again";
 }
 </script>
 
