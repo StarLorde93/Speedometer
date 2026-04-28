@@ -1,7 +1,7 @@
 {
   "name": "Speedometer",
   "short_name": "Speedometer",
-  "start_url": "/Speedometer/",
+  "start_url": "https://starlorde93.github.io/Speedometer/",
   "scope": "/Speedometer/",
   "display": "standalone",
   "background_color": "#020617",
