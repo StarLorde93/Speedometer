@@ -3,150 +3,418 @@
 <head>
 <link rel="manifest" href="manifest.json">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Speed</title>
+<meta name="theme-color" content="#020617">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Speedometer</title>
 
 <style>
 * {
+  box-sizing: border-box;
   -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
 
-body {
+html, body {
   margin: 0;
-  background: radial-gradient(circle at top, #1e293b, #020617);
-  color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-}
-
-.container {
-  text-align: center;
   width: 100%;
-  padding: 20px;
+  height: 100%;
+  overscroll-behavior: none;
+  overflow: hidden;
+  background: #020617;
+  color: white;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-.top-bar {
+body {
+  background:
+    radial-gradient(circle at top, rgba(56,189,248,.18), transparent 35%),
+    linear-gradient(180deg, #111827, #020617);
+}
+
+.app {
+  height: 100dvh;
+  padding: env(safe-area-inset-top) 18px env(safe-area-inset-bottom);
   display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  opacity: 0.7;
-  margin-bottom: 30px;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.speed-card {
+  flex: 0 0 auto;
+  text-align: center;
+  padding-top: 38px;
 }
 
 .speed {
-  font-size: 90px;
-  font-weight: 700;
-  letter-spacing: 3px;
+  font-size: clamp(76px, 22vw, 130px);
+  font-weight: 800;
+  letter-spacing: -3px;
+  line-height: .9;
 }
 
 .unit {
-  font-size: 16px;
-  opacity: 0.6;
-  margin-top: -10px;
+  margin-top: 8px;
+  font-size: 18px;
+  opacity: .55;
 }
 
 .status {
-  margin-top: 20px;
+  margin-top: 16px;
   font-size: 14px;
-  opacity: 0.6;
+  opacity: .65;
 }
 
 .btn {
-  margin-top: 30px;
-  padding: 12px 24px;
-  border-radius: 30px;
+  margin-top: 22px;
+  padding: 13px 30px;
   border: none;
-  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  border-radius: 999px;
   color: white;
-  font-size: 14px;
-  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #22d3ee, #6366f1);
+  box-shadow: 0 14px 40px rgba(56,189,248,.25);
+}
+
+.btn:active {
+  transform: scale(.96);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.info-card {
+  min-height: 86px;
+  padding: 14px;
+  border-radius: 22px;
+  background: rgba(255,255,255,.075);
+  border: 1px solid rgba(255,255,255,.11);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 12px 30px rgba(0,0,0,.18);
+}
+
+.label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  opacity: .45;
+  margin-bottom: 8px;
+}
+
+.value {
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.sub {
+  margin-top: 5px;
+  font-size: 11px;
+  opacity: .45;
+}
+
+.map-card {
+  position: relative;
+  flex: 1;
+  min-height: 210px;
+  border-radius: 28px;
+  overflow: hidden;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 20px 50px rgba(0,0,0,.28);
+}
+
+.map-card iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  pointer-events: none;
+}
+
+.map-pin {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: #38bdf8;
+  border: 4px solid white;
+  box-shadow: 0 0 0 10px rgba(56,189,248,.22);
+}
+
+.map-label {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  padding: 8px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: rgba(2,6,23,.72);
+  backdrop-filter: blur(12px);
+}
+
+@media (max-height: 720px) {
+  .speed-card {
+    padding-top: 18px;
+  }
+
+  .map-card {
+    min-height: 160px;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="app">
+  <section class="speed-card">
+    <div id="speed" class="speed">0.00</div>
+    <div class="unit">km/h</div>
+    <div id="status" class="status">Tap start to begin</div>
+    <button id="startBtn" class="btn" onclick="startTracking()">Start Tracking</button>
+  </section>
 
-  <div class="top-bar">
-    <div id="station">Station: --</div>
-    <div id="location">Loc: --</div>
-  </div>
+  <section class="info-grid">
+    <div class="info-card">
+      <div class="label">Nearest Station</div>
+      <div id="station" class="value">Waiting...</div>
+      <div id="stationSub" class="sub">Railway station nearby</div>
+    </div>
 
-  <div id="speed" class="speed">0</div>
-  <div class="unit">km/h</div>
-  <div id="status" class="status">Tap Start</div>
-  <button class="btn" onclick="startTracking()">Start Tracking</button>
+    <div class="info-card">
+      <div class="label">Current Location</div>
+      <div id="location" class="value">Waiting...</div>
+      <div id="locationSub" class="sub">Area / city</div>
+    </div>
+  </section>
 
+  <section class="map-card">
+    <div class="map-label">Live location preview</div>
+    <iframe id="map" loading="lazy"></iframe>
+    <div class="map-pin"></div>
+  </section>
 </div>
 
 <script>
 let lastSpeed = 0;
+let watchId = null;
+let lastLookupTime = 0;
+let lastMapUpdate = 0;
+let lastLat = null;
+let lastLon = null;
+
+const speedEl = document.getElementById("speed");
+const statusEl = document.getElementById("status");
+const stationEl = document.getElementById("station");
+const stationSubEl = document.getElementById("stationSub");
+const locationEl = document.getElementById("location");
+const locationSubEl = document.getElementById("locationSub");
+const mapEl = document.getElementById("map");
+const startBtn = document.getElementById("startBtn");
 
 function startTracking() {
-  navigator.geolocation.watchPosition(
-    updateSpeed,
+  if (!navigator.geolocation) {
+    updateStatus("GPS not supported");
+    return;
+  }
+
+  startBtn.textContent = "Tracking";
+  startBtn.disabled = true;
+  updateStatus("Requesting location...");
+
+  watchId = navigator.geolocation.watchPosition(
+    updatePosition,
     handleError,
-    { enableHighAccuracy: true }
+    {
+      enableHighAccuracy: true,
+      maximumAge: 1000,
+      timeout: 15000
+    }
   );
 }
 
-function updateSpeed(position) {
-  let { latitude, longitude, speed } = position.coords;
+function updatePosition(position) {
+  const { latitude, longitude, speed, accuracy } = position.coords;
 
-  if (speed === null) {
-    updateStatus("Calibrating...");
-  } else {
-    speed = speed * 3.6;
-    lastSpeed += (speed - lastSpeed) * 0.2;
+  lastLat = latitude;
+  lastLon = longitude;
 
-    let displaySpeed = lastSpeed < 1
-      ? lastSpeed.toFixed(2)
-      : Math.round(lastSpeed);
+  updateSpeed(speed);
+  updateStatus(`Tracking • ±${Math.round(accuracy)}m`);
 
-    document.getElementById("speed").innerText = displaySpeed;
-    updateStatus("Tracking...");
+  const now = Date.now();
+
+  if (now - lastMapUpdate > 5000) {
+    updateMap(latitude, longitude);
+    lastMapUpdate = now;
   }
 
-  updateLocation(latitude, longitude);
+  if (now - lastLookupTime > 30000) {
+    updateLocationInfo(latitude, longitude);
+    lastLookupTime = now;
+  }
 }
 
-function updateLocation(lat, lon) {
-  // Current location (reverse geocoding)
-  fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
-    .then(res => res.json())
-    .then(data => {
-      document.getElementById("location").innerText =
-        data.address.city ||
-        data.address.town ||
-        data.address.village ||
-        "Unknown";
+function updateSpeed(speed) {
+  let kmh = 0;
+
+  if (speed !== null && !isNaN(speed)) {
+    kmh = Math.max(0, speed * 3.6);
+  }
+
+  lastSpeed += (kmh - lastSpeed) * 0.22;
+
+  if (lastSpeed < 1) {
+    speedEl.textContent = lastSpeed.toFixed(2);
+  } else {
+    speedEl.textContent = Math.round(lastSpeed);
+  }
+}
+
+async function updateLocationInfo(lat, lon) {
+  stationEl.textContent = "Searching...";
+  locationEl.textContent = "Detecting...";
+
+  await Promise.allSettled([
+    updateCurrentLocation(lat, lon),
+    updateNearestStation(lat, lon)
+  ]);
+}
+
+async function updateCurrentLocation(lat, lon) {
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const a = data.address || {};
+
+    const main =
+      a.neighbourhood ||
+      a.suburb ||
+      a.quarter ||
+      a.road ||
+      a.village ||
+      a.town ||
+      a.city ||
+      a.county ||
+      "Location found";
+
+    const sub =
+      a.city ||
+      a.town ||
+      a.village ||
+      a.state_district ||
+      a.state ||
+      "";
+
+    locationEl.textContent = main;
+    locationSubEl.textContent = sub || "Current GPS area";
+  } catch {
+    locationEl.textContent = "Unavailable";
+    locationSubEl.textContent = "Check internet connection";
+  }
+}
+
+async function updateNearestStation(lat, lon) {
+  try {
+    const query = `
+      [out:json][timeout:12];
+      (
+        node(around:10000,${lat},${lon})["railway"="station"];
+        node(around:10000,${lat},${lon})["railway"="halt"];
+        way(around:10000,${lat},${lon})["railway"="station"];
+        relation(around:10000,${lat},${lon})["railway"="station"];
+      );
+      out center tags;
+    `;
+
+    const res = await fetch("https://overpass-api.de/api/interpreter", {
+      method: "POST",
+      body: query
     });
 
-  // Nearest railway station
-  fetch(`https://overpass-api.de/api/interpreter?data=[out:json];node(around:2000,${lat},${lon})["railway"="station"];out;`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.elements.length > 0) {
-        document.getElementById("station").innerText =
-          "Station: " + (data.elements[0].tags.name || "Nearby Station");
-      } else {
-        document.getElementById("station").innerText = "Station: Not found";
-      }
-    });
+    const data = await res.json();
+
+    if (!data.elements || data.elements.length === 0) {
+      stationEl.textContent = "Not found nearby";
+      stationSubEl.textContent = "Searched within 10 km";
+      return;
+    }
+
+    const stations = data.elements
+      .map(item => {
+        const sLat = item.lat || item.center?.lat;
+        const sLon = item.lon || item.center?.lon;
+        return {
+          name: item.tags?.name || "Nearby Station",
+          distance: getDistanceKm(lat, lon, sLat, sLon)
+        };
+      })
+      .filter(item => !isNaN(item.distance))
+      .sort((a, b) => a.distance - b.distance);
+
+    const nearest = stations[0];
+
+    stationEl.textContent = nearest.name;
+    stationSubEl.textContent = `${nearest.distance.toFixed(1)} km away`;
+  } catch {
+    stationEl.textContent = "Unavailable";
+    stationSubEl.textContent = "Station lookup failed";
+  }
+}
+
+function updateMap(lat, lon) {
+  const delta = 0.006;
+  const left = lon - delta;
+  const right = lon + delta;
+  const top = lat + delta;
+  const bottom = lat - delta;
+
+  mapEl.src =
+    `https://www.openstreetmap.org/export/embed.html?bbox=${left},${bottom},${right},${top}&layer=mapnik&marker=${lat},${lon}`;
+}
+
+function getDistanceKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) *
+    Math.cos(toRad(lat2)) *
+    Math.sin(dLon / 2) ** 2;
+
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function toRad(value) {
+  return value * Math.PI / 180;
 }
 
 function handleError(err) {
-  updateStatus("Enable location access");
+  startBtn.disabled = false;
+  startBtn.textContent = "Start Tracking";
+
+  if (err.code === 1) {
+    updateStatus("Location permission denied");
+  } else if (err.code === 2) {
+    updateStatus("Location unavailable");
+  } else {
+    updateStatus("GPS timeout. Try outdoors");
+  }
 }
 
-function updateStatus(msg) {
-  document.getElementById("status").innerText = msg;
+function updateStatus(text) {
+  statusEl.textContent = text;
 }
 </script>
 
