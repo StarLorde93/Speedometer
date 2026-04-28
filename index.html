@@ -36,7 +36,9 @@ body {
 
 .app {
   height: 100dvh;
-  padding: env(safe-area-inset-top) 18px env(safe-area-inset-bottom);
+  padding: env(safe-area-inset-top) 18px env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  padding-left: 18px;
+  padding-right: 18px;
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -58,10 +60,6 @@ body {
   margin-top: 10px;
   font-size: 18px;
   opacity: .55;
-}
-
-.status {
-  display: none;
 }
 
 .btn {
@@ -154,7 +152,6 @@ body {
   <section class="speed-card">
     <div id="speed" class="speed">0.00</div>
     <div class="unit">km/h</div>
-    <div id="status" class="status"></div>
     <button id="startBtn" class="btn" onclick="startTracking()">Start Tracking</button>
   </section>
 
@@ -222,7 +219,7 @@ function updatePosition(position) {
     lastMapLon = longitude;
   }
 
-  if (now - lastLookupTime > 45000) {
+  if (lastLookupTime === 0 || now - lastLookupTime > 45000) {
     updateLocationInfo(latitude, longitude);
     lastLookupTime = now;
   }
@@ -252,9 +249,31 @@ async function updateLocationInfo(lat, lon) {
   ]);
 }
 
-async function updateNearestStation(lat, lon) {
-  stationEl.textContent = "Searching...";
+async function updateCurrentLocation(lat, lon) {
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=15&addressdetails=1`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const a = data.address || {};
 
+    const place =
+      a.suburb ||
+      a.neighbourhood ||
+      a.quarter ||
+      a.village ||
+      a.town ||
+      a.city ||
+      a.state_district ||
+      a.state ||
+      "Location found";
+
+    locationEl.textContent = place;
+  } catch {
+    locationEl.textContent = "Location unavailable";
+  }
+}
+
+async function updateNearestStation(lat, lon) {
   const query = `
     [out:json][timeout:30];
     (
@@ -270,18 +289,18 @@ async function updateNearestStation(lat, lon) {
     out center tags;
   `;
 
-  const overpassServers = [
+  const servers = [
     "https://overpass-api.de/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",
     "https://overpass.openstreetmap.ru/api/interpreter"
   ];
 
-  for (const server of overpassServers) {
+  for (const server of servers) {
     try {
       const res = await fetch(server, {
         method: "POST",
         headers: {
-          "Content-Type": "text/plain"
+          "Content-Type": "text/plain;charset=UTF-8"
         },
         body: query
       });
@@ -290,9 +309,7 @@ async function updateNearestStation(lat, lon) {
 
       const data = await res.json();
 
-      if (!data.elements || data.elements.length === 0) continue;
-
-      const stations = data.elements
+      const stations = (data.elements || [])
         .map(item => {
           const sLat = item.lat || item.center?.lat;
           const sLon = item.lon || item.center?.lon;
@@ -313,12 +330,9 @@ async function updateNearestStation(lat, lon) {
         stationEl.textContent = stations[0].name;
         return;
       }
-    } catch (e) {
-      console.log("Overpass failed:", server, e);
-    }
+    } catch {}
   }
 
-  // fallback using Nominatim search
   try {
     const delta = 0.15;
     const left = lon - delta;
@@ -327,69 +341,22 @@ async function updateNearestStation(lat, lon) {
     const bottom = lat - delta;
 
     const url =
-      `https://nominatim.openstreetmap.org/search?` +
-      `format=jsonv2&q=railway%20station&bounded=1&limit=10&` +
-      `viewbox=${left},${top},${right},${bottom}`;
+      `https://nominatim.openstreetmap.org/search?format=jsonv2&q=railway%20station&bounded=1&limit=10&viewbox=${left},${top},${right},${bottom}`;
 
     const res = await fetch(url);
     const data = await res.json();
 
-    if (!data || data.length === 0) {
-      stationEl.textContent = "No station nearby";
-      return;
-    }
-
-    const nearest = data
+    const nearest = (data || [])
       .map(item => ({
         name: item.name || item.display_name?.split(",")[0] || "Nearby station",
         distance: getDistanceKm(lat, lon, parseFloat(item.lat), parseFloat(item.lon))
       }))
-      .filter(item => !isNaN(item.distance))
+      .filter(item => item.name && !isNaN(item.distance))
       .sort((a, b) => a.distance - b.distance)[0];
 
-    stationEl.textContent = nearest?.name || "Station found";
+    stationEl.textContent = nearest?.name || "Station not found";
   } catch {
     stationEl.textContent = "Station not found";
-  }
-}
-
-async function updateNearestStation(lat, lon) {
-  try {
-    const query = `
-      [out:json][timeout:25];
-      (
-        node(around:15000,${lat},${lon})["railway"~"station|halt|stop"];
-        way(around:15000,${lat},${lon})["railway"~"station|halt|stop"];
-        relation(around:15000,${lat},${lon})["railway"~"station|halt|stop"];
-      );
-      out center tags;
-    `;
-
-    const url = "https://overpass-api.de/api/interpreter?data=" + encodeURIComponent(query);
-    const res = await fetch(url);
-    const data = await res.json();
-
-    if (!data.elements || data.elements.length === 0) {
-      stationEl.textContent = "No station nearby";
-      return;
-    }
-
-    const stations = data.elements
-      .map(item => {
-        const sLat = item.lat || item.center?.lat;
-        const sLon = item.lon || item.center?.lon;
-
-        return {
-          name: item.tags?.name || item.tags?.["name:en"] || "Nearby station",
-          distance: getDistanceKm(lat, lon, sLat, sLon)
-        };
-      })
-      .filter(item => item.name && !isNaN(item.distance))
-      .sort((a, b) => a.distance - b.distance);
-
-    stationEl.textContent = stations[0]?.name || "Station found";
-  } catch {
-    stationEl.textContent = "Station unavailable";
   }
 }
 
