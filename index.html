@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -6,129 +6,142 @@
 <title>Speed</title>
 
 <style>
-  * {
-    -webkit-user-select: none;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-  }
+* {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
 
-  body {
-    margin: 0;
-    background: radial-gradient(circle at top, #1e293b, #020617);
-    color: #fff;
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-  }
+body {
+  margin: 0;
+  background: radial-gradient(circle at top, #1e293b, #020617);
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
 
-  .container {
-    text-align: center;
-  }
+.container {
+  text-align: center;
+  width: 100%;
+  padding: 20px;
+}
 
-  .speed {
-    font-size: 90px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    transition: all 0.2s ease;
-  }
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  opacity: 0.7;
+  margin-bottom: 30px;
+}
 
-  .unit {
-    font-size: 16px;
-    opacity: 0.6;
-    margin-top: -10px;
-  }
+.speed {
+  font-size: 90px;
+  font-weight: 700;
+  letter-spacing: 3px;
+}
 
-  .status {
-    margin-top: 20px;
-    font-size: 14px;
-    opacity: 0.6;
-  }
+.unit {
+  font-size: 16px;
+  opacity: 0.6;
+  margin-top: -10px;
+}
 
-  .btn {
-    margin-top: 30px;
-    padding: 12px 24px;
-    border-radius: 30px;
-    border: none;
-    background: linear-gradient(135deg, #38bdf8, #6366f1);
-    color: white;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: 0.2s;
-  }
+.status {
+  margin-top: 20px;
+  font-size: 14px;
+  opacity: 0.6;
+}
 
-  .btn:active {
-    transform: scale(0.95);
-  }
+.btn {
+  margin-top: 30px;
+  padding: 12px 24px;
+  border-radius: 30px;
+  border: none;
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+}
 </style>
 </head>
 
 <body>
 
 <div class="container">
+
+  <div class="top-bar">
+    <div id="station">Station: --</div>
+    <div id="location">Loc: --</div>
+  </div>
+
   <div id="speed" class="speed">0</div>
   <div class="unit">km/h</div>
   <div id="status" class="status">Tap Start</div>
   <button class="btn" onclick="startTracking()">Start Tracking</button>
+
 </div>
 
 <script>
 let lastSpeed = 0;
-let watchId = null;
 
 function startTracking() {
-  if (!navigator.geolocation) {
-    updateStatus("GPS not supported");
-    return;
-  }
-
-  updateStatus("Requesting permission...");
-
-  watchId = navigator.geolocation.watchPosition(
+  navigator.geolocation.watchPosition(
     updateSpeed,
     handleError,
-    {
-      enableHighAccuracy: true,
-      maximumAge: 0,
-      timeout: 10000
-    }
+    { enableHighAccuracy: true }
   );
 }
 
 function updateSpeed(position) {
-  let speed = position.coords.speed;
+  let { latitude, longitude, speed } = position.coords;
 
   if (speed === null) {
     updateStatus("Calibrating...");
-    return;
-  }
-
-  speed = speed * 3.6;
-  lastSpeed += (speed - lastSpeed) * 0.2;
-
-  let displaySpeed;
-
-  // Show decimals only when speed is very low (< 1 km/h)
-  if (lastSpeed < 1) {
-    displaySpeed = lastSpeed.toFixed(2);
   } else {
-    displaySpeed = Math.round(lastSpeed);
+    speed = speed * 3.6;
+    lastSpeed += (speed - lastSpeed) * 0.2;
+
+    let displaySpeed = lastSpeed < 1
+      ? lastSpeed.toFixed(2)
+      : Math.round(lastSpeed);
+
+    document.getElementById("speed").innerText = displaySpeed;
+    updateStatus("Tracking...");
   }
 
-  document.getElementById("speed").innerText = displaySpeed;
-  updateStatus("Tracking...");
+  updateLocation(latitude, longitude);
+}
+
+function updateLocation(lat, lon) {
+  // Current location (reverse geocoding)
+  fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("location").innerText =
+        data.address.city ||
+        data.address.town ||
+        data.address.village ||
+        "Unknown";
+    });
+
+  // Nearest railway station
+  fetch(`https://overpass-api.de/api/interpreter?data=[out:json];node(around:2000,${lat},${lon})["railway"="station"];out;`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.elements.length > 0) {
+        document.getElementById("station").innerText =
+          "Station: " + (data.elements[0].tags.name || "Nearby Station");
+      } else {
+        document.getElementById("station").innerText = "Station: Not found";
+      }
+    });
 }
 
 function handleError(err) {
-  if (err.code === 1) {
-    updateStatus("Permission denied. Enable location in browser settings.");
-  } else if (err.code === 2) {
-    updateStatus("Location unavailable");
-  } else {
-    updateStatus("Timeout. Try again outdoors.");
-  }
+  updateStatus("Enable location access");
 }
 
 function updateStatus(msg) {
