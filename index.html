@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -108,7 +108,16 @@ function updateSpeed(position) {
   speed = speed * 3.6;
   lastSpeed += (speed - lastSpeed) * 0.2;
 
-  document.getElementById("speed").innerText = Math.round(lastSpeed);
+  let displaySpeed;
+
+  // Show decimals only when speed is very low (< 1 km/h)
+  if (lastSpeed < 1) {
+    displaySpeed = lastSpeed.toFixed(2);
+  } else {
+    displaySpeed = Math.round(lastSpeed);
+  }
+
+  document.getElementById("speed").innerText = displaySpeed;
   updateStatus("Tracking...");
 }
 
