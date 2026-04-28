@@ -3,7 +3,7 @@
   "short_name": "Speedometer",
   "start_url": "https://starlorde93.github.io/Speedometer/",
   "scope": "/Speedometer/",
-  "display": "standalone",
+  "display": "fullscreen",
   "background_color": "#020617",
   "theme_color": "#020617",
   "orientation": "portrait",
