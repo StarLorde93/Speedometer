@@ -1,7 +1,8 @@
 {
   "name": "Speedometer",
-  "short_name": "Speed",
-  "start_url": ".",
+  "short_name": "Speedometer",
+  "start_url": "/Speedometer/",
+  "scope": "/Speedometer/",
   "display": "standalone",
   "background_color": "#020617",
   "theme_color": "#020617",
