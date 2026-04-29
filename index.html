@@ -6,9 +6,7 @@
 <meta name="theme-color" content="#020617">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-
 <title>Speedometer</title>
 
 <style>
@@ -33,7 +31,10 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:no
 .modal-box{width:100%;max-width:390px;padding:20px;border-radius:28px;background:#0f172a;border:1px solid rgba(255,255,255,.14)}
 .modal-title{font-size:20px;font-weight:800;margin-bottom:14px}
 .option{width:100%;margin-top:10px;padding:14px;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);color:white;font-size:15px;text-align:left}
-.input{width:100%;margin-top:12px;padding:14px;border-radius:18px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:white;font-size:15px}
+.option.selected{border-color:#38bdf8;background:linear-gradient(135deg,rgba(34,211,238,.28),rgba(99,102,241,.22));box-shadow:0 0 0 2px rgba(56,189,248,.18)}
+.input{width:100%;margin-top:12px;padding:14px;border-radius:18px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.09);color:white;font-size:15px;outline:none}
+.input:focus{border-color:white}
+.search-block{display:none}
 .results{margin-top:12px;display:none;max-height:220px;overflow:auto}
 .result{padding:12px;border-radius:16px;background:rgba(255,255,255,.07);margin-bottom:8px}
 .result-title{font-weight:750;font-size:14px}
@@ -80,11 +81,17 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:no
   <div class="modal-box">
     <div class="modal-title">Select destination</div>
 
-    <button class="option" onclick="chooseDestinationType('rail')">🚆 Railway station / junction</button>
-    <button class="option" onclick="chooseDestinationType('vehicle')">🚗 Location</button>
+    <button id="railBtn" class="option" onclick="chooseDestinationType('rail')">🚆 Railway station / junction</button>
+    <div id="railSearchBlock" class="search-block">
+      <input id="railInput" class="input" placeholder="Search station or junction in India" oninput="debouncedSearch('rail')">
+      <div id="railResults" class="results"></div>
+    </div>
 
-    <input id="destinationInput" class="input" placeholder="Search destination" style="display:none;" oninput="debouncedSearch()">
-    <div id="results" class="results"></div>
+    <button id="vehicleBtn" class="option" onclick="chooseDestinationType('vehicle')">🚗 Location</button>
+    <div id="vehicleSearchBlock" class="search-block">
+      <input id="vehicleInput" class="input" placeholder="Search location in India" oninput="debouncedSearch('vehicle')">
+      <div id="vehicleResults" class="results"></div>
+    </div>
 
     <button class="option" onclick="closeDestinationModal()">Cancel</button>
   </div>
@@ -121,8 +128,15 @@ const locationEl = document.getElementById("location");
 const startBtn = document.getElementById("startBtn");
 const destinationNameEl = document.getElementById("destinationName");
 const destinationInfoEl = document.getElementById("destinationInfo");
-const inputEl = document.getElementById("destinationInput");
-const resultsEl = document.getElementById("results");
+
+const railBtn = document.getElementById("railBtn");
+const vehicleBtn = document.getElementById("vehicleBtn");
+const railSearchBlock = document.getElementById("railSearchBlock");
+const vehicleSearchBlock = document.getElementById("vehicleSearchBlock");
+const railInput = document.getElementById("railInput");
+const vehicleInput = document.getElementById("vehicleInput");
+const railResults = document.getElementById("railResults");
+const vehicleResults = document.getElementById("vehicleResults");
 
 function initMap(lat = 28.6139, lon = 77.2090) {
   map = L.map("map", {
@@ -185,9 +199,7 @@ function updatePosition(position) {
 function calculateReliableSpeed(lat, lon, gpsSpeed, accuracy, timestamp) {
   let gpsKmh = null;
 
-  if (gpsSpeed !== null && !isNaN(gpsSpeed)) {
-    gpsKmh = Math.max(0, gpsSpeed * 3.6);
-  }
+  if (gpsSpeed !== null && !isNaN(gpsSpeed)) gpsKmh = Math.max(0, gpsSpeed * 3.6);
 
   let derivedKmh = null;
 
@@ -202,14 +214,11 @@ function calculateReliableSpeed(lat, lon, gpsSpeed, accuracy, timestamp) {
 
   let candidate = gpsKmh ?? derivedKmh ?? lastValidSpeed;
 
-  if (derivedKmh !== null && gpsKmh !== null) {
-    candidate = gpsKmh * 0.7 + derivedKmh * 0.3;
-  }
+  if (derivedKmh !== null && gpsKmh !== null) candidate = gpsKmh * 0.7 + derivedKmh * 0.3;
 
   if (accuracy > 80) candidate = lastValidSpeed;
   if (candidate > 180) candidate = lastValidSpeed;
   if (Math.abs(candidate - lastValidSpeed) > 35 && lastValidSpeed < 40) candidate = lastValidSpeed;
-
   if (candidate < 1.2) candidate = 0;
 
   speedSamples.push(candidate);
@@ -344,105 +353,67 @@ function openDestinationModal() {
 
 function closeDestinationModal() {
   document.getElementById("modal").style.display = "none";
-  inputEl.style.display = "none";
-  resultsEl.style.display = "none";
-  resultsEl.innerHTML = "";
 }
 
 function chooseDestinationType(type) {
   destinationType = type;
-  inputEl.style.display = "block";
-  inputEl.value = "";
-  resultsEl.innerHTML = "";
-  resultsEl.style.display = "none";
 
-  inputEl.placeholder = type === "rail"
-    ? "Search station or junction in India"
-    : "Search location in India";
+  railBtn.classList.toggle("selected", type === "rail");
+  vehicleBtn.classList.toggle("selected", type === "vehicle");
 
-  inputEl.focus();
+  railSearchBlock.style.display = type === "rail" ? "block" : "none";
+  vehicleSearchBlock.style.display = type === "vehicle" ? "block" : "none";
+
+  railResults.style.display = "none";
+  vehicleResults.style.display = "none";
+  railResults.innerHTML = "";
+  vehicleResults.innerHTML = "";
+
+  if (type === "rail") {
+    railInput.value = "";
+    setTimeout(() => railInput.focus(), 100);
+  } else {
+    vehicleInput.value = "";
+    setTimeout(() => vehicleInput.focus(), 100);
+  }
 }
 
-function debouncedSearch() {
+function debouncedSearch(type) {
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(searchDestinationInline, 350);
+  searchTimer = setTimeout(() => searchDestinationInline(type), 300);
 }
 
-async function searchDestinationInline() {
-  const q = inputEl.value.trim();
+async function searchDestinationInline(type) {
+  const input = type === "rail" ? railInput : vehicleInput;
+  const resultsBox = type === "rail" ? railResults : vehicleResults;
+  const q = input.value.trim();
 
   if (q.length < 2) {
-    resultsEl.style.display = "none";
-    resultsEl.innerHTML = "";
+    resultsBox.style.display = "none";
+    resultsBox.innerHTML = "";
     return;
   }
 
-  resultsEl.style.display = "block";
-  resultsEl.innerHTML = `<div class="result"><div class="result-title">Searching...</div></div>`;
-
-  let query = destinationType === "rail"
-    ? `${q} railway station junction India`
-    : `${q} India`;
-
-  let url =
-    `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=12&countrycodes=in&q=${encodeURIComponent(query)}`;
-
-  if (lastLat && lastLon) {
-    const delta = 2.5;
-    const left = lastLon - delta;
-    const right = lastLon + delta;
-    const top = lastLat + delta;
-    const bottom = lastLat - delta;
-    url += `&viewbox=${left},${top},${right},${bottom}&bounded=0`;
-  }
+  resultsBox.style.display = "block";
+  resultsBox.innerHTML = `<div class="result"><div class="result-title">Searching...</div></div>`;
 
   try {
-    const res = await fetch(url);
-    const data = await res.json();
+    let results = [];
 
-    let filtered = data.map(item => ({
-      raw: item,
-      name: item.name || item.display_name.split(",")[0],
-      display: item.display_name,
-      lat: parseFloat(item.lat),
-      lon: parseFloat(item.lon),
-      className: item.class || "",
-      typeName: item.type || "",
-      distance: lastLat && lastLon
-        ? getDistanceKm(lastLat, lastLon, parseFloat(item.lat), parseFloat(item.lon))
-        : 99999
-    }));
-
-    if (destinationType === "rail") {
-      filtered = filtered.filter(item =>
-        item.className === "railway" ||
-        item.typeName === "station" ||
-        item.typeName === "halt" ||
-        /railway|station|junction|jn\b|junct/i.test(item.display)
-      );
+    if (type === "rail") {
+      results = await searchRailStations(q);
     } else {
-      filtered = filtered.filter(item =>
-        item.className !== "railway" &&
-        !/railway station|train station|junction railway/i.test(item.display)
-      );
+      results = await searchLocations(q);
     }
 
-    filtered = filtered
-      .sort((a, b) => {
-        const scoreA = fuzzyScore(q, a.name);
-        const scoreB = fuzzyScore(q, b.name);
-        return (scoreB - scoreA) || (a.distance - b.distance);
-      })
-      .slice(0, 6);
-
-    if (!filtered.length) {
-      resultsEl.innerHTML = `<div class="result"><div class="result-title">No matching results</div></div>`;
+    if (!results.length) {
+      resultsBox.innerHTML = `<div class="result"><div class="result-title">No matching results</div></div>`;
       return;
     }
 
-    latestResults = filtered;
+    latestResults = results;
 
-    resultsEl.innerHTML = filtered.map((item, index) => `
+    resultsBox.innerHTML = results.map((item, index) => `
       <div class="result" onclick="selectDestination(${index})">
         <div class="result-title">${escapeHtml(item.name)}</div>
         <div class="result-sub">
@@ -452,8 +423,80 @@ async function searchDestinationInline() {
       </div>
     `).join("");
   } catch {
-    resultsEl.innerHTML = `<div class="result"><div class="result-title">Search failed</div></div>`;
+    resultsBox.innerHTML = `<div class="result"><div class="result-title">Search failed</div></div>`;
   }
+}
+
+async function searchRailStations(q) {
+  const queries = [
+    `${q} railway station India`,
+    `${q} junction railway station India`,
+    `${q} jn railway station India`,
+    `${q} station India`
+  ];
+
+  let all = [];
+
+  for (const query of queries) {
+    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=10&countrycodes=in&q=${encodeURIComponent(query)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    all.push(...data);
+  }
+
+  return cleanAndRankResults(all, q, "rail");
+}
+
+async function searchLocations(q) {
+  const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=15&countrycodes=in&q=${encodeURIComponent(q + " India")}`;
+  const res = await fetch(url);
+  const data = await res.json();
+
+  return cleanAndRankResults(data, q, "vehicle");
+}
+
+function cleanAndRankResults(data, q, type) {
+  const seen = new Set();
+
+  let items = data.map(item => {
+    const name = item.name || item.display_name.split(",")[0];
+    const display = item.display_name || name;
+    const lat = parseFloat(item.lat);
+    const lon = parseFloat(item.lon);
+    const key = `${name}-${lat.toFixed(3)}-${lon.toFixed(3)}`;
+
+    return {
+      raw: item,
+      key,
+      name,
+      display,
+      lat,
+      lon,
+      className: item.class || "",
+      typeName: item.type || "",
+      distance: lastLat && lastLon ? getDistanceKm(lastLat, lastLon, lat, lon) : 99999
+    };
+  }).filter(item => {
+    if (!item.name || !isFinite(item.lat) || !isFinite(item.lon)) return false;
+    if (seen.has(item.key)) return false;
+    seen.add(item.key);
+
+    if (type === "rail") {
+      return /railway|station|junction|jn\b|junct|halt/i.test(item.display + " " + item.name) ||
+             item.className === "railway";
+    }
+
+    return item.className !== "railway" &&
+           !/railway station|train station|junction railway/i.test(item.display);
+  });
+
+  items = items.sort((a, b) => {
+    const scoreA = fuzzyScore(q, a.name + " " + a.display);
+    const scoreB = fuzzyScore(q, b.name + " " + b.display);
+    return (scoreB - scoreA) || (a.distance - b.distance);
+  });
+
+  return items.slice(0, 6);
 }
 
 function selectDestination(index) {
@@ -492,8 +535,7 @@ async function updateDestinationProgress(lat, lon) {
 
 async function updateVehicleRoute(lat, lon) {
   try {
-    const url =
-      `https://router.project-osrm.org/route/v1/driving/${lon},${lat};${destination.lon},${destination.lat}?overview=full&geometries=geojson`;
+    const url = `https://router.project-osrm.org/route/v1/driving/${lon},${lat};${destination.lon},${destination.lat}?overview=full&geometries=geojson`;
 
     const res = await fetch(url);
     const data = await res.json();
@@ -511,13 +553,9 @@ async function updateVehicleRoute(lat, lon) {
     destinationInfoEl.textContent = `${kmLeft.toFixed(1)} km left • ${formatEta(etaMin)}`;
 
     const coords = route.geometry.coordinates.map(c => [c[1], c[0]]);
-
     clearRouteOnly();
 
-    routeLine = L.polyline(coords, {
-      weight: 5,
-      opacity: 0.75
-    }).addTo(map);
+    routeLine = L.polyline(coords, { weight: 5, opacity: 0.75 }).addTo(map);
   } catch {
     clearRouteOnly();
     destinationInfoEl.textContent = "Route unavailable";
@@ -535,9 +573,7 @@ function updateRailEta(lat, lon) {
 
   let eta = "ETA unavailable";
 
-  if (avg > 2) {
-    eta = formatEta((kmLeft / avg) * 60);
-  }
+  if (avg > 2) eta = formatEta((kmLeft / avg) * 60);
 
   destinationInfoEl.textContent = `${kmLeft.toFixed(1)} km left • ${eta}`;
 }
@@ -556,23 +592,32 @@ function getAverageSpeed() {
 }
 
 function fuzzyScore(query, text) {
-  query = query.toLowerCase();
-  text = text.toLowerCase();
+  query = normalizeText(query);
+  text = normalizeText(text);
 
-  if (text.startsWith(query)) return 100;
-  if (text.includes(query)) return 80;
+  if (text.startsWith(query)) return 200;
+  if (text.includes(query)) return 160;
 
   let score = 0;
   let qIndex = 0;
 
   for (let i = 0; i < text.length && qIndex < query.length; i++) {
     if (text[i] === query[qIndex]) {
-      score += 8;
+      score += 12;
       qIndex++;
     }
   }
 
-  return score - Math.abs(text.length - query.length);
+  const completionBonus = qIndex === query.length ? 80 : 0;
+  return score + completionBonus - Math.abs(text.length - query.length) * 0.2;
+}
+
+function normalizeText(text) {
+  return String(text)
+    .toLowerCase()
+    .replace(/\bjunction\b/g, "jn")
+    .replace(/\bjn\.\b/g, "jn")
+    .replace(/[^a-z0-9]/g, "");
 }
 
 function formatEta(minutes) {
