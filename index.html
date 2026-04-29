@@ -81,13 +81,13 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:no
   <div class="modal-box">
     <div class="modal-title">Select destination</div>
 
-    <button id="railBtn" class="option" onclick="chooseDestinationType('rail')">🚆 Railway station / junction</button>
+    <button id="railBtn" class="option" onclick="chooseDestinationType('rail')">Railway Station/Junction</button>
     <div id="railSearchBlock" class="search-block">
       <input id="railInput" class="input" placeholder="Search station or junction in India" oninput="debouncedSearch('rail')">
       <div id="railResults" class="results"></div>
     </div>
 
-    <button id="vehicleBtn" class="option" onclick="chooseDestinationType('vehicle')">🚗 Location</button>
+    <button id="vehicleBtn" class="option" onclick="chooseDestinationType('vehicle')">Location</button>
     <div id="vehicleSearchBlock" class="search-block">
       <input id="vehicleInput" class="input" placeholder="Search location in India" oninput="debouncedSearch('vehicle')">
       <div id="vehicleResults" class="results"></div>
