@@ -48,7 +48,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:no
 
 <div class="app">
   <section class="speed-card">
-    <div id="speed" class="speed">0.00</div>
+    <div id="speed" class="speed">0</div>
     <div class="unit">km/h</div>
     <button id="startBtn" class="btn" onclick="startTracking()">Start Tracking</button>
   </section>
@@ -100,7 +100,6 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:no
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-let lastSpeed = 0;
 let lastValidSpeed = 0;
 let speedSamples = [];
 let watchId = null;
@@ -168,7 +167,7 @@ function startTracking() {
 
   watchId = navigator.geolocation.watchPosition(updatePosition, handleError, {
     enableHighAccuracy: true,
-    maximumAge: 300,
+    maximumAge: 0,
     timeout: 12000
   });
 }
@@ -177,9 +176,9 @@ function updatePosition(position) {
   const { latitude, longitude, speed, accuracy } = position.coords;
   const nowTime = position.timestamp;
 
-  const calculatedSpeed = calculateReliableSpeed(latitude, longitude, speed, accuracy, nowTime);
+  const currentSpeed = calculateReliableSpeed(latitude, longitude, speed, accuracy, nowTime);
 
-  updateSpeed(calculatedSpeed);
+  updateSpeed(currentSpeed);
   updateLiveMap(latitude, longitude, accuracy);
 
   const now = Date.now();
@@ -197,65 +196,31 @@ function updatePosition(position) {
 }
 
 function calculateReliableSpeed(lat, lon, gpsSpeed, accuracy, timestamp) {
-  let gpsKmh = null;
+  let candidate = 0;
 
   if (gpsSpeed !== null && !isNaN(gpsSpeed)) {
-    gpsKmh = Math.max(0, gpsSpeed * 3.6);
-  }
-
-  let derivedKmh = null;
-
-  if (lastLat !== null && lastLon !== null && lastPositionTime !== null) {
+    candidate = Math.max(0, gpsSpeed * 3.6);
+  } else if (lastLat !== null && lastLon !== null && lastPositionTime !== null) {
     const seconds = (timestamp - lastPositionTime) / 1000;
     const distanceKm = getDistanceKm(lastLat, lastLon, lat, lon);
 
-    if (seconds > 0.5 && seconds < 20) {
-      derivedKmh = (distanceKm / seconds) * 3600;
+    if (seconds > 0.3 && seconds < 10) {
+      candidate = (distanceKm / seconds) * 3600;
     }
   }
 
-  let candidate;
+  if (candidate > 260) candidate = lastValidSpeed;
 
-  if (gpsKmh !== null && gpsKmh > 0) {
-    candidate = gpsKmh;
-  } else if (derivedKmh !== null) {
-    candidate = derivedKmh;
-  } else {
-    candidate = lastValidSpeed;
-  }
-
-  // remove impossible GPS spikes only
-  if (candidate > 220) {
-    candidate = lastValidSpeed;
-  }
-
-  // only ignore sudden jumps when they are unrealistic
-  if (lastValidSpeed > 5 && Math.abs(candidate - lastValidSpeed) > 120) {
-    candidate = lastValidSpeed;
-  }
-
-  // stopped only when both GPS and movement are basically zero
-  if ((gpsKmh === null || gpsKmh < 0.3) && (derivedKmh === null || derivedKmh < 0.3)) {
-    candidate = 0;
-  }
+  lastValidSpeed = candidate;
 
   speedSamples.push(candidate);
-  if (speedSamples.length > 4) speedSamples.shift();
+  if (speedSamples.length > 20) speedSamples.shift();
 
-  const avg = speedSamples.reduce((a, b) => a + b, 0) / speedSamples.length;
-
-  lastValidSpeed = avg;
-  return avg;
+  return candidate;
 }
 
 function updateSpeed(kmh) {
-  lastSpeed += (kmh - lastSpeed) * 0.55;
-
-  if (lastSpeed < 0.15) lastSpeed = 0;
-
-  speedEl.textContent = lastSpeed < 1
-    ? lastSpeed.toFixed(2)
-    : Math.round(lastSpeed);
+  speedEl.textContent = Math.round(kmh);
 }
 
 function updateLiveMap(lat, lon, accuracy) {
@@ -287,7 +252,7 @@ function updateLiveMap(lat, lon, accuracy) {
   accuracyCircle.setLatLng(pos);
   accuracyCircle.setRadius(accuracy || 20);
 
-  map.panTo(pos, { animate: true, duration: 0.5 });
+  map.panTo(pos, { animate: true, duration: 0.25 });
 }
 
 async function updateLocationInfo(lat, lon) {
@@ -584,15 +549,9 @@ function updateRailEta(lat, lon) {
   const startLat = nearestStationObj?.lat || lat;
   const startLon = nearestStationObj?.lon || lon;
 
-  const kmLeft = getDistanceKm(
-    startLat,
-    startLon,
-    destination.lat,
-    destination.lon
-  );
+  const kmLeft = getDistanceKm(startLat, startLon, destination.lat, destination.lon);
 
-  destinationInfoEl.textContent =
-    `${kmLeft.toFixed(1)} km`;
+  destinationInfoEl.textContent = `${kmLeft.toFixed(1)} km`;
 }
 
 function clearRouteOnly() {
@@ -600,12 +559,6 @@ function clearRouteOnly() {
     map.removeLayer(routeLine);
     routeLine = null;
   }
-}
-
-function getAverageSpeed() {
-  const moving = speedSamples.filter(s => s > 2);
-  if (!moving.length) return 0;
-  return moving.reduce((a, b) => a + b, 0) / moving.length;
 }
 
 function fuzzyScore(query, text) {
