@@ -35,7 +35,7 @@ html, body {
   padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   background:
     radial-gradient(circle at top, rgba(56,189,248,.18), transparent 36%),
     linear-gradient(180deg, #111827, #020617);
@@ -43,11 +43,11 @@ html, body {
 
 .speed-card {
   text-align: center;
-  padding-top: 24px;
+  padding-top: 18px;
 }
 
 .speed {
-  font-size: clamp(82px, 24vw, 132px);
+  font-size: clamp(78px, 22vw, 120px);
   font-weight: 850;
   letter-spacing: -4px;
   line-height: .9;
@@ -60,8 +60,8 @@ html, body {
 }
 
 .btn {
-  margin-top: 22px;
-  padding: 14px 34px;
+  margin-top: 18px;
+  padding: 13px 30px;
   border: 0;
   border-radius: 999px;
   color: white;
@@ -71,19 +71,23 @@ html, body {
   box-shadow: 0 14px 40px rgba(56,189,248,.28);
 }
 
-.info-grid {
+.grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
 
-.info-card {
-  min-height: 88px;
-  padding: 15px;
-  border-radius: 24px;
+.card {
+  min-height: 82px;
+  padding: 14px;
+  border-radius: 22px;
   background: rgba(255,255,255,.075);
   border: 1px solid rgba(255,255,255,.12);
   backdrop-filter: blur(18px);
+}
+
+.destination-card {
+  min-height: 74px;
 }
 
 .label {
@@ -91,19 +95,25 @@ html, body {
   text-transform: uppercase;
   letter-spacing: .1em;
   opacity: .45;
-  margin-bottom: 10px;
+  margin-bottom: 9px;
 }
 
 .value {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 750;
   line-height: 1.25;
+}
+
+.small {
+  margin-top: 5px;
+  font-size: 12px;
+  opacity: .55;
 }
 
 .map-card {
   position: relative;
   flex: 1;
-  min-height: 260px;
+  min-height: 230px;
   border-radius: 30px;
   overflow: hidden;
   border: 1px solid rgba(255,255,255,.13);
@@ -136,6 +146,56 @@ html, body {
   box-shadow: 0 0 0 14px rgba(11,132,255,.2);
 }
 
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(2,6,23,.72);
+  backdrop-filter: blur(14px);
+}
+
+.modal-box {
+  width: 100%;
+  max-width: 380px;
+  padding: 20px;
+  border-radius: 28px;
+  background: #0f172a;
+  border: 1px solid rgba(255,255,255,.14);
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 14px;
+}
+
+.option {
+  width: 100%;
+  margin-top: 10px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.08);
+  color: white;
+  font-size: 15px;
+  text-align: left;
+}
+
+.input {
+  width: 100%;
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.08);
+  color: white;
+  font-size: 15px;
+}
+
 .leaflet-control-attribution {
   display: none;
 }
@@ -151,16 +211,22 @@ html, body {
     <button id="startBtn" class="btn" onclick="startTracking()">Start Tracking</button>
   </section>
 
-  <section class="info-grid">
-    <div class="info-card">
+  <section class="grid">
+    <div class="card">
       <div class="label">Nearest Station</div>
       <div id="station" class="value">Waiting...</div>
     </div>
 
-    <div class="info-card">
+    <div class="card">
       <div class="label">Current Location</div>
       <div id="location" class="value">Waiting...</div>
     </div>
+  </section>
+
+  <section class="card destination-card" onclick="openDestinationModal()">
+    <div class="label">Destination</div>
+    <div id="destinationName" class="value">Select destination</div>
+    <div id="destinationInfo" class="small">Tap to choose railway station or road location</div>
   </section>
 
   <section class="map-card">
@@ -169,31 +235,54 @@ html, body {
   </section>
 </div>
 
+<div id="modal" class="modal">
+  <div class="modal-box">
+    <div class="modal-title">Select destination type</div>
+    <button class="option" onclick="chooseDestinationType('rail')">🚆 Railway station</button>
+    <button class="option" onclick="chooseDestinationType('road')">🚗 Road location</button>
+    <input id="destinationInput" class="input" placeholder="Enter destination name" style="display:none;">
+    <button id="searchBtn" class="btn" onclick="searchDestination()" style="display:none;width:100%;">Search</button>
+    <button class="option" onclick="closeDestinationModal()">Cancel</button>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
 let lastSpeed = 0;
+let lastValidSpeed = 0;
+let speedSamples = [];
 let watchId = null;
+
 let map = null;
 let userMarker = null;
 let accuracyCircle = null;
+let routeLine = null;
+let destinationMarker = null;
+
 let lastLookupTime = 0;
 let lastLat = null;
 let lastLon = null;
+let lastPositionTime = null;
+
+let destinationType = null;
+let destination = null;
 
 const speedEl = document.getElementById("speed");
 const stationEl = document.getElementById("station");
 const locationEl = document.getElementById("location");
 const startBtn = document.getElementById("startBtn");
+const destinationNameEl = document.getElementById("destinationName");
+const destinationInfoEl = document.getElementById("destinationInfo");
 
 function initMap(lat = 28.6139, lon = 77.2090) {
   map = L.map("map", {
-    zoomControl: false,
+    zoomControl: true,
     attributionControl: false,
-    dragging: false,
-    scrollWheelZoom: false,
-    doubleClickZoom: false,
-    touchZoom: false
+    dragging: true,
+    scrollWheelZoom: true,
+    doubleClickZoom: true,
+    touchZoom: true
   }).setView([lat, lon], 17);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -217,16 +306,25 @@ function startTracking() {
     handleError,
     {
       enableHighAccuracy: true,
-      maximumAge: 500,
-      timeout: 15000
+      maximumAge: 300,
+      timeout: 12000
     }
   );
 }
 
 function updatePosition(position) {
   const { latitude, longitude, speed, accuracy } = position.coords;
+  const nowTime = position.timestamp;
 
-  updateSpeed(speed);
+  const calculatedSpeed = calculateReliableSpeed(
+    latitude,
+    longitude,
+    speed,
+    accuracy,
+    nowTime
+  );
+
+  updateSpeed(calculatedSpeed);
   updateLiveMap(latitude, longitude, accuracy);
 
   const now = Date.now();
@@ -236,18 +334,63 @@ function updatePosition(position) {
     lastLookupTime = now;
   }
 
-  lastLat = latitude;
-  lastLon = longitude;
-}
-
-function updateSpeed(speed) {
-  let kmh = 0;
-
-  if (speed !== null && !isNaN(speed)) {
-    kmh = Math.max(0, speed * 3.6);
+  if (destination) {
+    updateDestinationProgress(latitude, longitude);
   }
 
-  lastSpeed += (kmh - lastSpeed) * 0.28;
+  lastLat = latitude;
+  lastLon = longitude;
+  lastPositionTime = nowTime;
+}
+
+function calculateReliableSpeed(lat, lon, gpsSpeed, accuracy, timestamp) {
+  let gpsKmh = null;
+
+  if (gpsSpeed !== null && !isNaN(gpsSpeed)) {
+    gpsKmh = Math.max(0, gpsSpeed * 3.6);
+  }
+
+  let derivedKmh = null;
+
+  if (lastLat !== null && lastLon !== null && lastPositionTime !== null) {
+    const seconds = (timestamp - lastPositionTime) / 1000;
+    const distanceKm = getDistanceKm(lastLat, lastLon, lat, lon);
+
+    if (seconds > 0.8 && seconds < 10 && accuracy <= 80) {
+      derivedKmh = (distanceKm / seconds) * 3600;
+    }
+  }
+
+  let candidate = gpsKmh ?? derivedKmh ?? lastValidSpeed;
+
+  if (derivedKmh !== null && gpsKmh !== null) {
+    candidate = (gpsKmh * 0.65) + (derivedKmh * 0.35);
+  }
+
+  if (accuracy > 100) {
+    candidate = lastValidSpeed;
+  }
+
+  if (candidate > 180) {
+    candidate = lastValidSpeed;
+  }
+
+  if (Math.abs(candidate - lastValidSpeed) > 45 && lastValidSpeed < 40) {
+    candidate = lastValidSpeed;
+  }
+
+  speedSamples.push(candidate);
+  if (speedSamples.length > 5) speedSamples.shift();
+
+  const sorted = [...speedSamples].sort((a, b) => a - b);
+  const median = sorted[Math.floor(sorted.length / 2)];
+
+  lastValidSpeed = median;
+  return median;
+}
+
+function updateSpeed(kmh) {
+  lastSpeed += (kmh - lastSpeed) * 0.35;
 
   speedEl.textContent = lastSpeed < 1
     ? lastSpeed.toFixed(2)
@@ -285,7 +428,7 @@ function updateLiveMap(lat, lon, accuracy) {
 
   map.panTo(pos, {
     animate: true,
-    duration: 0.6
+    duration: 0.5
   });
 }
 
@@ -358,6 +501,156 @@ async function updateNearestStation(lat, lon) {
   } catch {
     stationEl.textContent = "Station unavailable";
   }
+}
+
+function openDestinationModal() {
+  document.getElementById("modal").style.display = "flex";
+}
+
+function closeDestinationModal() {
+  document.getElementById("modal").style.display = "none";
+  document.getElementById("destinationInput").style.display = "none";
+  document.getElementById("searchBtn").style.display = "none";
+}
+
+function chooseDestinationType(type) {
+  destinationType = type;
+  const input = document.getElementById("destinationInput");
+
+  input.style.display = "block";
+  document.getElementById("searchBtn").style.display = "block";
+  input.value = "";
+
+  input.placeholder = type === "rail"
+    ? "Enter railway station name"
+    : "Enter road destination";
+}
+
+async function searchDestination() {
+  const q = document.getElementById("destinationInput").value.trim();
+  if (!q) return;
+
+  destinationNameEl.textContent = "Searching...";
+  destinationInfoEl.textContent = "Please wait";
+
+  const suffix = destinationType === "rail" ? " railway station" : "";
+  const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(q + suffix)}`;
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.length) {
+      destinationNameEl.textContent = "Destination not found";
+      destinationInfoEl.textContent = "Try a more specific name";
+      return;
+    }
+
+    destination = {
+      type: destinationType,
+      name: data[0].name || data[0].display_name.split(",")[0],
+      lat: parseFloat(data[0].lat),
+      lon: parseFloat(data[0].lon)
+    };
+
+    destinationNameEl.textContent = destination.name;
+    destinationInfoEl.textContent = "Calculating...";
+
+    if (destinationMarker) map.removeLayer(destinationMarker);
+
+    destinationMarker = L.marker([destination.lat, destination.lon]).addTo(map);
+
+    closeDestinationModal();
+
+    if (lastLat && lastLon) {
+      updateDestinationProgress(lastLat, lastLon);
+    }
+  } catch {
+    destinationNameEl.textContent = "Search failed";
+    destinationInfoEl.textContent = "Check internet connection";
+  }
+}
+
+async function updateDestinationProgress(lat, lon) {
+  if (!destination) return;
+
+  if (destination.type === "road") {
+    await updateRoadRoute(lat, lon);
+  } else {
+    updateRailProgress(lat, lon);
+  }
+}
+
+async function updateRoadRoute(lat, lon) {
+  try {
+    const url =
+      `https://router.project-osrm.org/route/v1/driving/${lon},${lat};${destination.lon},${destination.lat}?overview=full&geometries=geojson`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+    const route = data.routes?.[0];
+
+    if (!route) return;
+
+    const kmLeft = route.distance / 1000;
+    const etaMin = route.duration / 60;
+
+    destinationInfoEl.textContent =
+      `${kmLeft.toFixed(1)} km left • ${formatEta(etaMin)}`;
+
+    const coords = route.geometry.coordinates.map(c => [c[1], c[0]]);
+
+    if (routeLine) map.removeLayer(routeLine);
+
+    routeLine = L.polyline(coords, {
+      weight: 5,
+      opacity: 0.75
+    }).addTo(map);
+  } catch {
+    destinationInfoEl.textContent = "Route unavailable";
+  }
+}
+
+function updateRailProgress(lat, lon) {
+  const kmLeft = getDistanceKm(lat, lon, destination.lat, destination.lon);
+  const avg = getAverageSpeed();
+
+  let eta = "ETA unavailable";
+
+  if (avg > 2) {
+    eta = formatEta((kmLeft / avg) * 60);
+  }
+
+  destinationInfoEl.textContent =
+    `${kmLeft.toFixed(1)} km left • ${eta}`;
+
+  if (routeLine) map.removeLayer(routeLine);
+
+  routeLine = L.polyline(
+    [[lat, lon], [destination.lat, destination.lon]],
+    {
+      weight: 4,
+      opacity: 0.65,
+      dashArray: "8,10"
+    }
+  ).addTo(map);
+}
+
+function getAverageSpeed() {
+  if (!speedSamples.length) return lastSpeed;
+  return speedSamples.reduce((a, b) => a + b, 0) / speedSamples.length;
+}
+
+function formatEta(minutes) {
+  if (!isFinite(minutes)) return "ETA unavailable";
+
+  if (minutes < 1) return "<1 min";
+
+  const h = Math.floor(minutes / 60);
+  const m = Math.round(minutes % 60);
+
+  if (h <= 0) return `${m} min`;
+  return `${h}h ${m}m`;
 }
 
 function getDistanceKm(lat1, lon1, lat2, lon2) {
