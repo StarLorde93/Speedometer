@@ -584,14 +584,15 @@ function updateRailEta(lat, lon) {
   const startLat = nearestStationObj?.lat || lat;
   const startLon = nearestStationObj?.lon || lon;
 
-  const kmLeft = getDistanceKm(startLat, startLon, destination.lat, destination.lon);
-  const avg = getAverageSpeed();
+  const kmLeft = getDistanceKm(
+    startLat,
+    startLon,
+    destination.lat,
+    destination.lon
+  );
 
-  let eta = "ETA unavailable";
-
-  if (avg > 2) eta = formatEta((kmLeft / avg) * 60);
-
-  destinationInfoEl.textContent = `${kmLeft.toFixed(1)} km left • ${eta}`;
+  destinationInfoEl.textContent =
+    `${kmLeft.toFixed(1)} km station-to-station • Railway route ETA unavailable`;
 }
 
 function clearRouteOnly() {
