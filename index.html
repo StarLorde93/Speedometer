@@ -199,7 +199,9 @@ function updatePosition(position) {
 function calculateReliableSpeed(lat, lon, gpsSpeed, accuracy, timestamp) {
   let gpsKmh = null;
 
-  if (gpsSpeed !== null && !isNaN(gpsSpeed)) gpsKmh = Math.max(0, gpsSpeed * 3.6);
+  if (gpsSpeed !== null && !isNaN(gpsSpeed)) {
+    gpsKmh = Math.max(0, gpsSpeed * 3.6);
+  }
 
   let derivedKmh = null;
 
@@ -207,39 +209,53 @@ function calculateReliableSpeed(lat, lon, gpsSpeed, accuracy, timestamp) {
     const seconds = (timestamp - lastPositionTime) / 1000;
     const distanceKm = getDistanceKm(lastLat, lastLon, lat, lon);
 
-    if (seconds > 0.8 && seconds < 10 && accuracy <= 60) {
+    if (seconds > 0.5 && seconds < 20) {
       derivedKmh = (distanceKm / seconds) * 3600;
     }
   }
 
-  let candidate = gpsKmh ?? derivedKmh ?? lastValidSpeed;
+  let candidate;
 
-  if (derivedKmh !== null && gpsKmh !== null) candidate = gpsKmh * 0.7 + derivedKmh * 0.3;
+  if (gpsKmh !== null && gpsKmh > 0) {
+    candidate = gpsKmh;
+  } else if (derivedKmh !== null) {
+    candidate = derivedKmh;
+  } else {
+    candidate = lastValidSpeed;
+  }
 
-  if (accuracy > 80) candidate = lastValidSpeed;
-  if (candidate > 180) candidate = lastValidSpeed;
-  if (Math.abs(candidate - lastValidSpeed) > 35 && lastValidSpeed < 40) candidate = lastValidSpeed;
-  if (candidate < 1.2) candidate = 0;
+  // remove impossible GPS spikes only
+  if (candidate > 220) {
+    candidate = lastValidSpeed;
+  }
+
+  // only ignore sudden jumps when they are unrealistic
+  if (lastValidSpeed > 5 && Math.abs(candidate - lastValidSpeed) > 120) {
+    candidate = lastValidSpeed;
+  }
+
+  // stopped only when both GPS and movement are basically zero
+  if ((gpsKmh === null || gpsKmh < 0.3) && (derivedKmh === null || derivedKmh < 0.3)) {
+    candidate = 0;
+  }
 
   speedSamples.push(candidate);
-  if (speedSamples.length > 5) speedSamples.shift();
+  if (speedSamples.length > 4) speedSamples.shift();
 
-  const sorted = [...speedSamples].sort((a, b) => a - b);
-  const median = sorted[Math.floor(sorted.length / 2)];
+  const avg = speedSamples.reduce((a, b) => a + b, 0) / speedSamples.length;
 
-  lastValidSpeed = median < 1.2 ? 0 : median;
-  return lastValidSpeed;
+  lastValidSpeed = avg;
+  return avg;
 }
 
 function updateSpeed(kmh) {
-  if (kmh === 0) {
-    lastSpeed += (0 - lastSpeed) * 0.6;
-    if (lastSpeed < 0.12) lastSpeed = 0;
-  } else {
-    lastSpeed += (kmh - lastSpeed) * 0.35;
-  }
+  lastSpeed += (kmh - lastSpeed) * 0.55;
 
-  speedEl.textContent = lastSpeed < 1 ? lastSpeed.toFixed(2) : Math.round(lastSpeed);
+  if (lastSpeed < 0.15) lastSpeed = 0;
+
+  speedEl.textContent = lastSpeed < 1
+    ? lastSpeed.toFixed(2)
+    : Math.round(lastSpeed);
 }
 
 function updateLiveMap(lat, lon, accuracy) {
