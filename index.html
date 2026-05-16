@@ -16,31 +16,32 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:no
 .speed-card{text-align:center;padding-top:18px}
 .speed{font-size:clamp(78px,22vw,120px);font-weight:850;letter-spacing:-4px;line-height:.9}
 .unit{margin-top:8px;font-size:18px;opacity:.55}
-.btn{margin-top:18px;padding:13px 30px;border:0;border-radius:999px;color:white;font-size:15px;font-weight:700;background:linear-gradient(135deg,#22d3ee,#6366f1);box-shadow:0 14px 40px rgba(56,189,248,.28)}
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.btn{padding:13px 24px;border:0;border-radius:999px;color:white;font-size:15px;font-weight:700;background:linear-gradient(135deg,#22d3ee,#6366f1);box-shadow:0 14px 40px rgba(56,189,248,.28)}
+.btn.secondary{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);box-shadow:none}
+.btn:disabled{opacity:.7}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .card{min-height:82px;padding:14px;border-radius:22px;background:rgba(255,255,255,.075);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(18px)}
-.destination-card{min-height:74px}
+.destination-card{min-height:82px}
 .label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;opacity:.45;margin-bottom:9px}
 .value{font-size:15px;font-weight:750;line-height:1.25}
 .small{margin-top:5px;font-size:12px;opacity:.55}
 .map-card{position:relative;flex:1;min-height:230px;border-radius:30px;overflow:hidden;border:1px solid rgba(255,255,255,.13);box-shadow:0 22px 54px rgba(0,0,0,.32)}
 #map{width:100%;height:100%}
 .map-label{position:absolute;z-index:999;left:14px;top:14px;padding:8px 12px;border-radius:999px;font-size:12px;background:rgba(2,6,23,.76);backdrop-filter:blur(12px)}
+.legend{position:absolute;z-index:999;left:14px;bottom:14px;display:flex;gap:8px;flex-wrap:wrap;max-width:calc(100% - 90px);padding:8px 10px;border-radius:16px;font-size:11px;background:rgba(2,6,23,.76);backdrop-filter:blur(12px)}
+.legend span{display:flex;align-items:center;gap:5px;white-space:nowrap}.legend i{width:9px;height:9px;border-radius:50%;display:inline-block}.passed{background:#22c55e}.current{background:#facc15}.upcoming{background:#ef4444}
 .user-dot{width:22px;height:22px;background:#0b84ff;border:4px solid white;border-radius:50%;box-shadow:0 0 0 14px rgba(11,132,255,.2)}
+.train-icon{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:#0f172a;border:3px solid #facc15;box-shadow:0 12px 26px rgba(0,0,0,.3);font-size:20px}.station-dot{width:14px;height:14px;border:2px solid white;border-radius:50%;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.station-dot.passed{background:#22c55e}.station-dot.current{background:#facc15}.station-dot.upcoming{background:#ef4444}.station-dot.destination{background:#a855f7}
 .modal{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(2,6,23,.72);backdrop-filter:blur(14px)}
 .modal-box{width:100%;max-width:390px;padding:20px;border-radius:28px;background:#0f172a;border:1px solid rgba(255,255,255,.14)}
-.modal-title{font-size:20px;font-weight:800;margin-bottom:14px}
+.modal-title{font-size:20px;font-weight:800;margin-bottom:14px}.modal-text{font-size:13px;line-height:1.45;opacity:.68;margin-bottom:10px}
 .option{width:100%;margin-top:10px;padding:14px;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);color:white;font-size:15px;text-align:left}
 .option.selected{border-color:#38bdf8;background:linear-gradient(135deg,rgba(34,211,238,.28),rgba(99,102,241,.22));box-shadow:0 0 0 2px rgba(56,189,248,.18)}
-.input{width:100%;margin-top:12px;padding:14px;border-radius:18px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.09);color:white;font-size:15px;outline:none}
-.input:focus{border-color:white}
-.search-block{display:none}
-.results{margin-top:12px;display:none;max-height:220px;overflow:auto}
-.result{padding:12px;border-radius:16px;background:rgba(255,255,255,.07);margin-bottom:8px}
-.result-title{font-weight:750;font-size:14px}
-.result-sub{font-size:12px;opacity:.55;margin-top:4px}
-.leaflet-control-attribution{display:none}
-.leaflet-control-zoom{right:12px!important;bottom:12px!important;left:auto!important;top:auto!important}
+.input{width:100%;margin-top:12px;padding:14px;border-radius:18px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.09);color:white;font-size:15px;outline:none}.input:focus{border-color:white}
+.search-block{display:none}.results{margin-top:12px;display:none;max-height:220px;overflow:auto}.result{padding:12px;border-radius:16px;background:rgba(255,255,255,.07);margin-bottom:8px}.result-title{font-weight:750;font-size:14px}.result-sub{font-size:12px;opacity:.55;margin-top:4px}
+.leaflet-control-attribution{display:none}.leaflet-control-zoom{right:12px!important;bottom:12px!important;left:auto!important;top:auto!important}
 </style>
 </head>
 
@@ -50,19 +51,15 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:no
   <section class="speed-card">
     <div id="speed" class="speed">0</div>
     <div class="unit">km/h</div>
-    <button id="startBtn" class="btn" onclick="startTracking()">Start Tracking</button>
+    <div class="actions">
+      <button id="startBtn" class="btn" onclick="startSpeedTracking()">Track Speed</button>
+      <button id="pnrBtn" class="btn secondary" onclick="openPnrModal()">Add PNR</button>
+    </div>
   </section>
 
   <section class="grid">
-    <div class="card">
-      <div class="label">Nearest Station</div>
-      <div id="station" class="value">Waiting...</div>
-    </div>
-
-    <div class="card">
-      <div class="label">Current Location</div>
-      <div id="location" class="value">Waiting...</div>
-    </div>
+    <div class="card"><div class="label">Nearest Station</div><div id="station" class="value">Locating...</div></div>
+    <div class="card"><div class="label">Current Location</div><div id="location" class="value">Locating...</div></div>
   </section>
 
   <section class="card destination-card" onclick="openDestinationModal()">
@@ -73,6 +70,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:no
 
   <section class="map-card">
     <div class="map-label">Live map</div>
+    <div class="legend"><span><i class="passed"></i>Passed</span><span><i class="current"></i>Current</span><span><i class="upcoming"></i>Upcoming</span></div>
     <div id="map"></div>
   </section>
 </div>
@@ -80,46 +78,61 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:no
 <div id="modal" class="modal">
   <div class="modal-box">
     <div class="modal-title">Select destination</div>
-
     <button id="railBtn" class="option" onclick="chooseDestinationType('rail')">Railway Station/Junction</button>
     <div id="railSearchBlock" class="search-block">
       <input id="railInput" class="input" placeholder="Search station or junction in India" oninput="debouncedSearch('rail')">
       <div id="railResults" class="results"></div>
     </div>
-
     <button id="vehicleBtn" class="option" onclick="chooseDestinationType('vehicle')">Location</button>
     <div id="vehicleSearchBlock" class="search-block">
       <input id="vehicleInput" class="input" placeholder="Search location in India" oninput="debouncedSearch('vehicle')">
       <div id="vehicleResults" class="results"></div>
     </div>
-
     <button class="option" onclick="closeDestinationModal()">Cancel</button>
+  </div>
+</div>
+
+<div id="pnrModal" class="modal">
+  <div class="modal-box">
+    <div class="modal-title">Add PNR / train route</div>
+    <div class="modal-text">Enter your 10-digit PNR. The app uses your current/nearest station and selected destination to highlight the likely rail corridor and station progress on the map.</div>
+    <input id="pnrInput" class="input" inputmode="numeric" maxlength="10" placeholder="PNR number">
+    <button class="option selected" onclick="savePnr()">Show train route</button>
+    <button class="option" onclick="closePnrModal()">Cancel</button>
   </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-let lastValidSpeed = 0;
-let speedSamples = [];
-let watchId = null;
-
+const MAX_TRAIN_SPEED_KMH = 180;
+const LOCATION_LOOKUP_INTERVAL = 30000;
+const STATION_LOOKUP_MIN_MOVE_KM = 0.35;
+const speedFilter = { value: 0, samples: [], lastPosition: null };
+let locationWatchId = null;
+let speedTracking = false;
 let map = null;
 let userMarker = null;
 let accuracyCircle = null;
 let routeLine = null;
 let destinationMarker = null;
-
+let stationMarkers = [];
 let lastLookupTime = 0;
+let lastLookupPoint = null;
 let lastLat = null;
 let lastLon = null;
-let lastPositionTime = null;
-
 let destinationType = null;
 let destination = null;
 let nearestStationObj = null;
 let searchTimer = null;
+let searchSeq = 0;
 let latestResults = [];
+let pnr = null;
+let pnrRouteActive = false;
+let railRouteCacheKey = null;
+let railRouteStations = [];
+let vehicleRouteCacheKey = null;
+let vehicleRouteLastFetch = 0;
 
 const speedEl = document.getElementById("speed");
 const stationEl = document.getElementById("station");
@@ -127,7 +140,6 @@ const locationEl = document.getElementById("location");
 const startBtn = document.getElementById("startBtn");
 const destinationNameEl = document.getElementById("destinationName");
 const destinationInfoEl = document.getElementById("destinationInfo");
-
 const railBtn = document.getElementById("railBtn");
 const vehicleBtn = document.getElementById("vehicleBtn");
 const railSearchBlock = document.getElementById("railSearchBlock");
@@ -136,508 +148,420 @@ const railInput = document.getElementById("railInput");
 const vehicleInput = document.getElementById("vehicleInput");
 const railResults = document.getElementById("railResults");
 const vehicleResults = document.getElementById("vehicleResults");
+const pnrInput = document.getElementById("pnrInput");
 
 function initMap(lat = 28.6139, lon = 77.2090) {
-  map = L.map("map", {
-    zoomControl: false,
-    attributionControl: false,
-    dragging: true,
-    scrollWheelZoom: true,
-    doubleClickZoom: true,
-    touchZoom: true
-  }).setView([lat, lon], 17);
-
+  if (map) return;
+  map = L.map("map", { zoomControl: false, attributionControl: false, dragging: true, scrollWheelZoom: true, doubleClickZoom: true, touchZoom: true }).setView([lat, lon], 15);
   L.control.zoom({ position: "bottomright" }).addTo(map);
-
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19
-  }).addTo(map);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
 }
 
-function startTracking() {
+function startLocationServices() {
+  initMap();
   if (!navigator.geolocation) {
-    startBtn.textContent = "GPS not supported";
+    stationEl.textContent = "GPS not supported";
+    locationEl.textContent = "GPS not supported";
     return;
   }
+  if (locationWatchId !== null) return;
+  locationWatchId = navigator.geolocation.watchPosition(updatePosition, handleError, { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 });
+  navigator.geolocation.getCurrentPosition(updatePosition, handleError, { enableHighAccuracy: true, maximumAge: 0, timeout: 12000 });
+}
 
-  startBtn.textContent = "Tracking";
-  startBtn.disabled = true;
-
-  if (!map) initMap();
-
-  watchId = navigator.geolocation.watchPosition(updatePosition, handleError, {
-    enableHighAccuracy: true,
-    maximumAge: 0,
-    timeout: 12000
-  });
+function startSpeedTracking() {
+  speedTracking = !speedTracking;
+  startBtn.textContent = speedTracking ? "Speed Tracking" : "Track Speed";
+  startBtn.classList.toggle("secondary", speedTracking);
+  if (!speedTracking) {
+    resetSpeedFilter();
+    updateSpeed(0);
+  }
+  startLocationServices();
 }
 
 function updatePosition(position) {
-  const { latitude, longitude, speed, accuracy } = position.coords;
+  const { latitude, longitude, speed, accuracy, heading } = position.coords;
   const nowTime = position.timestamp;
-
-  const currentSpeed = calculateReliableSpeed(latitude, longitude, speed, accuracy, nowTime);
-
-  updateSpeed(currentSpeed);
-  updateLiveMap(latitude, longitude, accuracy);
-
-  const now = Date.now();
-
-  if (lastLookupTime === 0 || now - lastLookupTime > 45000) {
-    updateLocationInfo(latitude, longitude);
-    lastLookupTime = now;
-  }
-
-  if (destination) updateDestinationProgress(latitude, longitude);
-
   lastLat = latitude;
   lastLon = longitude;
-  lastPositionTime = nowTime;
+  updateLiveMap(latitude, longitude, accuracy, heading);
+  if (speedTracking) updateSpeed(calculateReliableSpeed(latitude, longitude, speed, accuracy, nowTime));
+  maybeUpdateLocationInfo(latitude, longitude);
+  if (destination) updateDestinationProgress(latitude, longitude);
 }
 
-function calculateReliableSpeed(lat, lon, gpsSpeed, accuracy, timestamp) {
-  let candidate = 0;
+function calculateReliableSpeed(lat, lon, gpsSpeed, accuracy = 999, timestamp = Date.now()) {
+  const previous = speedFilter.lastPosition;
+  let rawGps = Number.isFinite(gpsSpeed) && gpsSpeed >= 0 ? gpsSpeed * 3.6 : null;
+  let rawDistance = null;
 
-  if (gpsSpeed !== null && !isNaN(gpsSpeed)) {
-    candidate = Math.max(0, gpsSpeed * 3.6);
-  } else if (lastLat !== null && lastLon !== null && lastPositionTime !== null) {
-    const seconds = (timestamp - lastPositionTime) / 1000;
-    const distanceKm = getDistanceKm(lastLat, lastLon, lat, lon);
-
-    if (seconds > 0.3 && seconds < 10) {
-      candidate = (distanceKm / seconds) * 3600;
-    }
+  if (previous) {
+    const seconds = (timestamp - previous.timestamp) / 1000;
+    const distanceKm = getDistanceKm(previous.lat, previous.lon, lat, lon);
+    if (seconds >= 0.75 && seconds <= 8 && Number.isFinite(distanceKm)) rawDistance = distanceKm / seconds * 3600;
   }
 
-  if (candidate > 260) candidate = lastValidSpeed;
+  speedFilter.lastPosition = { lat, lon, timestamp };
+  const candidates = [rawGps, rawDistance].filter(value => Number.isFinite(value) && value >= 0 && value <= MAX_TRAIN_SPEED_KMH + 45);
+  if (!candidates.length) return speedFilter.value;
 
-  lastValidSpeed = candidate;
-
-  speedSamples.push(candidate);
-  if (speedSamples.length > 20) speedSamples.shift();
-
-  return candidate;
+  let candidate = rawGps !== null && accuracy <= 60 ? weightedAverage(candidates) : candidates[candidates.length - 1];
+  if (accuracy > 120 && candidate > speedFilter.value + 18) candidate = speedFilter.value;
+  const maxStep = speedFilter.samples.length === 0 ? 60 : (speedFilter.value < 8 ? 24 : 32);
+  candidate = clamp(candidate, Math.max(0, speedFilter.value - maxStep), Math.min(MAX_TRAIN_SPEED_KMH, speedFilter.value + maxStep));
+  speedFilter.samples.push(candidate);
+  if (speedFilter.samples.length > 7) speedFilter.samples.shift();
+  speedFilter.value = median(speedFilter.samples);
+  return speedFilter.value;
 }
 
-function updateSpeed(kmh) {
-  speedEl.textContent = Math.round(kmh);
+function resetSpeedFilter() {
+  speedFilter.value = 0;
+  speedFilter.samples = [];
+  speedFilter.lastPosition = hasLivePosition() ? { lat: lastLat, lon: lastLon, timestamp: Date.now() } : null;
 }
 
-function updateLiveMap(lat, lon, accuracy) {
+function updateSpeed(kmh) { speedEl.textContent = Math.round(kmh); }
+
+function updateLiveMap(lat, lon, accuracy, heading) {
   const pos = [lat, lon];
-
-  if (!map) initMap(lat, lon);
-
+  initMap(lat, lon);
+  const markerIcon = pnrRouteActive ? trainDivIcon() : userDivIcon();
   if (!userMarker) {
-    userMarker = L.marker(pos, {
-      icon: L.divIcon({
-        className: "",
-        html: '<div class="user-dot"></div>',
-        iconSize: [22, 22],
-        iconAnchor: [11, 11]
-      })
-    }).addTo(map);
-
-    accuracyCircle = L.circle(pos, {
-      radius: accuracy || 20,
-      fillOpacity: 0.12,
-      opacity: 0.2
-    }).addTo(map);
-
-    map.setView(pos, 17);
+    userMarker = L.marker(pos, { icon: markerIcon, rotationAngle: heading || 0 }).addTo(map);
+    accuracyCircle = L.circle(pos, { radius: accuracy || 20, fillOpacity: 0.12, opacity: 0.2 }).addTo(map);
+    map.setView(pos, 16);
     return;
   }
-
+  userMarker.setIcon(markerIcon);
   userMarker.setLatLng(pos);
   accuracyCircle.setLatLng(pos);
-  accuracyCircle.setRadius(accuracy || 20);
-
+  accuracyCircle.setRadius(Math.max(accuracy || 20, 8));
   map.panTo(pos, { animate: true, duration: 0.25 });
+}
+
+function userDivIcon() { return L.divIcon({ className: "", html: '<div class="user-dot"></div>', iconSize: [22, 22], iconAnchor: [11, 11] }); }
+function trainDivIcon() { return L.divIcon({ className: "", html: '<div class="train-icon">🚆</div>', iconSize: [34, 34], iconAnchor: [17, 17] }); }
+function stationDivIcon(status) { return L.divIcon({ className: "", html: `<div class="station-dot ${status}"></div>`, iconSize: [14, 14], iconAnchor: [7, 7] }); }
+
+function maybeUpdateLocationInfo(lat, lon) {
+  const now = Date.now();
+  const moved = lastLookupPoint ? getDistanceKm(lastLookupPoint.lat, lastLookupPoint.lon, lat, lon) : Infinity;
+  if (lastLookupTime && now - lastLookupTime < LOCATION_LOOKUP_INTERVAL && moved < STATION_LOOKUP_MIN_MOVE_KM) return;
+  lastLookupTime = now;
+  lastLookupPoint = { lat, lon };
+  updateLocationInfo(lat, lon);
 }
 
 async function updateLocationInfo(lat, lon) {
   stationEl.textContent = "Searching...";
   locationEl.textContent = "Detecting...";
+  await Promise.allSettled([updateCurrentLocation(lat, lon), updateNearestStation(lat, lon)]);
+}
 
-  await Promise.allSettled([
-    updateCurrentLocation(lat, lon),
-    updateNearestStation(lat, lon)
-  ]);
+async function fetchJson(url, options = {}, timeout = 12000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 async function updateCurrentLocation(lat, lon) {
   try {
-    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=15&addressdetails=1`;
-    const res = await fetch(url);
-    const data = await res.json();
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=16&addressdetails=1`;
+    const data = await fetchJson(url);
     const a = data.address || {};
-
-    locationEl.textContent =
-      a.suburb || a.neighbourhood || a.quarter || a.village ||
-      a.town || a.city || a.state_district || "Location found";
+    locationEl.textContent = a.suburb || a.neighbourhood || a.quarter || a.village || a.town || a.city || a.state_district || data.name || "Location found";
   } catch {
     locationEl.textContent = "Location unavailable";
   }
 }
 
 async function updateNearestStation(lat, lon) {
-  const query = `
-    [out:json][timeout:30];
-    (
-      node(around:25000,${lat},${lon})["railway"="station"];
-      node(around:25000,${lat},${lon})["railway"="halt"];
-      way(around:25000,${lat},${lon})["railway"="station"];
-      relation(around:25000,${lat},${lon})["railway"="station"];
-    );
-    out center tags;
-  `;
-
   try {
-    const res = await fetch("https://overpass-api.de/api/interpreter", {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=UTF-8" },
-      body: query
-    });
-
-    const data = await res.json();
-
-    const stations = (data.elements || [])
-      .map(item => {
-        const sLat = item.lat || item.center?.lat;
-        const sLon = item.lon || item.center?.lon;
-        return {
-          name: item.tags?.name || item.tags?.["name:en"] || "Nearby station",
-          lat: sLat,
-          lon: sLon,
-          distance: getDistanceKm(lat, lon, sLat, sLon)
-        };
-      })
-      .filter(item => item.name && !isNaN(item.distance))
-      .sort((a, b) => a.distance - b.distance);
-
+    const stations = await fetchNearbyStations(lat, lon, 30000);
     if (stations.length) {
       nearestStationObj = stations[0];
-      stationEl.textContent = nearestStationObj.name;
-    } else {
-      nearestStationObj = null;
-      stationEl.textContent = "Station not found";
+      stationEl.textContent = `${nearestStationObj.name} (${nearestStationObj.distance.toFixed(1)} km)`;
+      return;
     }
+    nearestStationObj = null;
+    stationEl.textContent = "Station not found";
   } catch {
     nearestStationObj = null;
     stationEl.textContent = "Station unavailable";
   }
 }
 
-function openDestinationModal() {
-  document.getElementById("modal").style.display = "flex";
+async function fetchNearbyStations(lat, lon, radius = 25000) {
+  const query = `[out:json][timeout:25];(node(around:${radius},${lat},${lon})["railway"~"station|halt"];way(around:${radius},${lat},${lon})["railway"="station"];relation(around:${radius},${lat},${lon})["railway"="station"];);out center tags;`;
+  const data = await fetchJson("https://overpass-api.de/api/interpreter", { method: "POST", headers: { "Content-Type": "text/plain;charset=UTF-8" }, body: query }, 16000);
+  return (data.elements || []).map(overpassStationToResult(lat, lon)).filter(validStation).sort((a, b) => a.distance - b.distance);
 }
 
-function closeDestinationModal() {
-  document.getElementById("modal").style.display = "none";
+function overpassStationToResult(originLat, originLon) {
+  return item => {
+    const sLat = item.lat || item.center?.lat;
+    const sLon = item.lon || item.center?.lon;
+    const name = item.tags?.name || item.tags?.["name:en"] || item.tags?.ref || "Nearby station";
+    return { name, display: [name, item.tags?.operator, item.tags?.state].filter(Boolean).join(" • "), lat: sLat, lon: sLon, distance: getDistanceKm(originLat, originLon, sLat, sLon), className: "railway", typeName: item.tags?.railway || "station" };
+  };
 }
+
+function validStation(item) { return item.name && Number.isFinite(item.lat) && Number.isFinite(item.lon) && Number.isFinite(item.distance); }
+function openDestinationModal() { document.getElementById("modal").style.display = "flex"; }
+function closeDestinationModal() { document.getElementById("modal").style.display = "none"; }
+function openPnrModal() { document.getElementById("pnrModal").style.display = "flex"; }
+function closePnrModal() { document.getElementById("pnrModal").style.display = "none"; }
 
 function chooseDestinationType(type) {
   destinationType = type;
-
   railBtn.classList.toggle("selected", type === "rail");
   vehicleBtn.classList.toggle("selected", type === "vehicle");
-
   railSearchBlock.style.display = type === "rail" ? "block" : "none";
   vehicleSearchBlock.style.display = type === "vehicle" ? "block" : "none";
-
   railResults.style.display = "none";
   vehicleResults.style.display = "none";
   railResults.innerHTML = "";
   vehicleResults.innerHTML = "";
-
-  if (type === "rail") {
-    railInput.value = "";
-    setTimeout(() => railInput.focus(), 100);
-  } else {
-    vehicleInput.value = "";
-    setTimeout(() => vehicleInput.focus(), 100);
-  }
+  if (type === "rail") { railInput.value = ""; setTimeout(() => railInput.focus(), 100); } else { vehicleInput.value = ""; setTimeout(() => vehicleInput.focus(), 100); }
 }
 
 function debouncedSearch(type) {
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => searchDestinationInline(type), 300);
+  const seq = ++searchSeq;
+  searchTimer = setTimeout(() => searchDestinationInline(type, seq), 250);
 }
 
-async function searchDestinationInline(type) {
+async function searchDestinationInline(type, seq = ++searchSeq) {
   const input = type === "rail" ? railInput : vehicleInput;
   const resultsBox = type === "rail" ? railResults : vehicleResults;
   const q = input.value.trim();
-
-  if (q.length < 2) {
-    resultsBox.style.display = "none";
-    resultsBox.innerHTML = "";
-    return;
-  }
-
+  if (q.length < 2) { resultsBox.style.display = "none"; resultsBox.innerHTML = ""; return; }
   resultsBox.style.display = "block";
   resultsBox.innerHTML = `<div class="result"><div class="result-title">Searching...</div></div>`;
-
   try {
-    let results = [];
-
-    if (type === "rail") {
-      results = await searchRailStations(q);
-    } else {
-      results = await searchLocations(q);
-    }
-
-    if (!results.length) {
-      resultsBox.innerHTML = `<div class="result"><div class="result-title">No matching results</div></div>`;
-      return;
-    }
-
+    const results = type === "rail" ? await searchRailStations(q) : await searchLocations(q);
+    if (seq !== searchSeq) return;
     latestResults = results;
-
-    resultsBox.innerHTML = results.map((item, index) => `
-      <div class="result" onclick="selectDestination(${index})">
-        <div class="result-title">${escapeHtml(item.name)}</div>
-        <div class="result-sub">
-          ${item.distance < 99999 ? item.distance.toFixed(1) + " km away • " : ""}
-          ${escapeHtml(item.display)}
-        </div>
-      </div>
-    `).join("");
+    if (!results.length) { resultsBox.innerHTML = `<div class="result"><div class="result-title">No matching results</div><div class="result-sub">Try a station code, junction name, or nearby city.</div></div>`; return; }
+    resultsBox.innerHTML = results.map((item, index) => `<div class="result" onclick="selectDestination(${index})"><div class="result-title">${escapeHtml(item.name)}</div><div class="result-sub">${item.distance < 99999 ? item.distance.toFixed(1) + " km away • " : ""}${escapeHtml(item.display)}</div></div>`).join("");
   } catch {
-    resultsBox.innerHTML = `<div class="result"><div class="result-title">Search failed</div></div>`;
+    if (seq === searchSeq) resultsBox.innerHTML = `<div class="result"><div class="result-title">Search failed</div><div class="result-sub">Check internet and try again.</div></div>`;
   }
 }
 
 async function searchRailStations(q) {
-  const queries = [
-    `${q} railway station India`,
-    `${q} junction railway station India`,
-    `${q} jn railway station India`,
-    `${q} station India`
-  ];
-
-  let all = [];
-
-  for (const query of queries) {
-    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=10&countrycodes=in&q=${encodeURIComponent(query)}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    all.push(...data);
+  const nominatimQueries = [`${q} railway station`, `${q} junction station`, `${q} jn station`, `${q} India`];
+  const settled = await Promise.allSettled(nominatimQueries.map(query => fetchJson(`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=12&countrycodes=in&q=${encodeURIComponent(query)}`, {}, 9000)));
+  let all = settled.flatMap(item => item.status === "fulfilled" ? item.value : []);
+  if (hasLivePosition()) {
+    const nearby = await fetchNearbyStations(lastLat, lastLon, 60000).catch(() => []);
+    all.push(...nearby.map(station => ({ name: station.name, display_name: station.display, lat: station.lat, lon: station.lon, class: "railway", type: station.typeName })));
   }
-
   return cleanAndRankResults(all, q, "rail");
 }
 
 async function searchLocations(q) {
-  const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=15&countrycodes=in&q=${encodeURIComponent(q + " India")}`;
-  const res = await fetch(url);
-  const data = await res.json();
-
-  return cleanAndRankResults(data, q, "vehicle");
+  const queries = [q, `${q} India`];
+  const settled = await Promise.allSettled(queries.map(query => fetchJson(`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=12&countrycodes=in&q=${encodeURIComponent(query)}`, {}, 9000)));
+  return cleanAndRankResults(settled.flatMap(item => item.status === "fulfilled" ? item.value : []), q, "vehicle");
 }
 
 function cleanAndRankResults(data, q, type) {
   const seen = new Set();
-
-  let items = data.map(item => {
-    const name = item.name || item.display_name.split(",")[0];
-    const display = item.display_name || name;
+  return data.map(item => {
+    const name = item.name || item.display_name?.split(",")[0];
+    const display = item.display_name || item.display || name || "";
     const lat = parseFloat(item.lat);
     const lon = parseFloat(item.lon);
-    const key = `${name}-${lat.toFixed(3)}-${lon.toFixed(3)}`;
-
-    return {
-      raw: item,
-      key,
-      name,
-      display,
-      lat,
-      lon,
-      className: item.class || "",
-      typeName: item.type || "",
-      distance: lastLat && lastLon ? getDistanceKm(lastLat, lastLon, lat, lon) : 99999
-    };
+    const key = `${normalizeText(name)}-${lat.toFixed(3)}-${lon.toFixed(3)}`;
+    return { raw: item, key, name, display, lat, lon, className: item.class || item.className || "", typeName: item.type || item.typeName || "", distance: hasLivePosition() ? getDistanceKm(lastLat, lastLon, lat, lon) : 99999 };
   }).filter(item => {
-    if (!item.name || !isFinite(item.lat) || !isFinite(item.lon)) return false;
-    if (seen.has(item.key)) return false;
+    if (!item.name || !Number.isFinite(item.lat) || !Number.isFinite(item.lon) || seen.has(item.key)) return false;
     seen.add(item.key);
-
-    if (type === "rail") {
-      return /railway|station|junction|jn\b|junct|halt/i.test(item.display + " " + item.name) ||
-             item.className === "railway";
-    }
-
-    return item.className !== "railway" &&
-           !/railway station|train station|junction railway/i.test(item.display);
-  });
-
-  items = items.sort((a, b) => {
-    const scoreA = fuzzyScore(q, a.name + " " + a.display);
-    const scoreB = fuzzyScore(q, b.name + " " + b.display);
-    return (scoreB - scoreA) || (a.distance - b.distance);
-  });
-
-  return items.slice(0, 6);
+    const haystack = `${item.display} ${item.name} ${item.className} ${item.typeName}`;
+    if (type === "rail") return /railway|station|junction|jn\b|halt|terminal/i.test(haystack);
+    return item.className !== "railway" && !/railway station|train station|junction railway/i.test(haystack);
+  }).sort((a, b) => (fuzzyScore(q, b.name + " " + b.display) - fuzzyScore(q, a.name + " " + a.display)) || (a.distance - b.distance)).slice(0, 8);
 }
 
 function selectDestination(index) {
   const item = latestResults[index];
   if (!item) return;
-
   clearRouteOnly();
-
-  destination = {
-    type: destinationType,
-    name: item.name,
-    lat: item.lat,
-    lon: item.lon
-  };
-
+  destination = { type: destinationType, name: item.name, lat: item.lat, lon: item.lon };
+  pnrRouteActive = Boolean(pnr && destination.type === "rail");
+  railRouteCacheKey = null;
+  vehicleRouteCacheKey = null;
   destinationNameEl.textContent = destination.name;
   destinationInfoEl.textContent = "Calculating...";
-
   if (destinationMarker) map.removeLayer(destinationMarker);
   destinationMarker = L.marker([destination.lat, destination.lon]).addTo(map);
-
   closeDestinationModal();
+  if (hasLivePosition()) updateDestinationProgress(lastLat, lastLon);
+}
 
-  if (lastLat && lastLon) updateDestinationProgress(lastLat, lastLon);
+async function savePnr() {
+  const value = pnrInput.value.replace(/\D/g, "");
+  if (value.length !== 10) { pnrInput.focus(); pnrInput.value = value; pnrInput.placeholder = "Enter a valid 10-digit PNR"; return; }
+  pnr = value;
+  pnrRouteActive = true;
+  closePnrModal();
+  if (!destination || destination.type !== "rail") {
+    destinationNameEl.textContent = `PNR ${pnr}`;
+    destinationInfoEl.textContent = "Select destination station to draw rail route";
+    openDestinationModal();
+    chooseDestinationType("rail");
+    return;
+  }
+  if (hasLivePosition()) await updateRailRoute(lastLat, lastLon, true);
 }
 
 async function updateDestinationProgress(lat, lon) {
   if (!destination) return;
-
-  if (destination.type === "vehicle") {
-    await updateVehicleRoute(lat, lon);
-  } else {
-    updateRailEta(lat, lon);
-  }
+  if (destination.type === "vehicle") await updateVehicleRoute(lat, lon);
+  else if (pnrRouteActive) await updateRailRoute(lat, lon);
+  else updateRailEta(lat, lon);
 }
 
 async function updateVehicleRoute(lat, lon) {
+  const routeKey = `${Math.round(lat * 1000)}-${Math.round(lon * 1000)}-${destination.name}`;
+  if (routeKey === vehicleRouteCacheKey && Date.now() - vehicleRouteLastFetch < 20000) return;
+  vehicleRouteCacheKey = routeKey;
+  vehicleRouteLastFetch = Date.now();
   try {
-    const url = `https://router.project-osrm.org/route/v1/driving/${lon},${lat};${destination.lon},${destination.lat}?overview=full&geometries=geojson`;
-
-    const res = await fetch(url);
-    const data = await res.json();
+    const data = await fetchJson(`https://router.project-osrm.org/route/v1/driving/${lon},${lat};${destination.lon},${destination.lat}?overview=full&geometries=geojson`, {}, 14000);
     const route = data.routes?.[0];
-
-    if (!route) {
-      clearRouteOnly();
-      destinationInfoEl.textContent = "Route unavailable";
-      return;
-    }
-
-    const kmLeft = route.distance / 1000;
-    const etaMin = route.duration / 60;
-
-    destinationInfoEl.textContent = `${kmLeft.toFixed(1)} km left • ${formatEta(etaMin)}`;
-
-    const coords = route.geometry.coordinates.map(c => [c[1], c[0]]);
-    clearRouteOnly();
-
-    routeLine = L.polyline(coords, { weight: 5, opacity: 0.75 }).addTo(map);
-  } catch {
-    clearRouteOnly();
-    destinationInfoEl.textContent = "Route unavailable";
-  }
+    if (!route) { clearRouteOnly(); destinationInfoEl.textContent = "Route unavailable"; return; }
+    destinationInfoEl.textContent = `${(route.distance / 1000).toFixed(1)} km left • ${formatEta(route.duration / 60)}`;
+    drawRoute(route.geometry.coordinates.map(c => [c[1], c[0]]), { color: "#38bdf8", weight: 5, opacity: 0.75 });
+  } catch { clearRouteOnly(); destinationInfoEl.textContent = "Route unavailable"; }
 }
 
 function updateRailEta(lat, lon) {
   clearRouteOnly();
-
   const startLat = nearestStationObj?.lat || lat;
   const startLon = nearestStationObj?.lon || lon;
-
   const kmLeft = getDistanceKm(startLat, startLon, destination.lat, destination.lon);
+  destinationInfoEl.textContent = `${kmLeft.toFixed(1)} km to ${destination.name}`;
+}
 
-  destinationInfoEl.textContent = `${kmLeft.toFixed(1)} km`;
+async function updateRailRoute(lat, lon, force = false) {
+  const start = nearestStationObj || { name: "Current location", lat, lon };
+  const cacheKey = `${start.name}-${destination.name}-${Math.round(lat * 100)}-${Math.round(lon * 100)}`;
+  if (!force && cacheKey === railRouteCacheKey && railRouteStations.length) { updateStationProgress(lat, lon); return; }
+  railRouteCacheKey = cacheKey;
+  destinationInfoEl.textContent = `Building rail route to ${destination.name}...`;
+  const stations = await fetchRailCorridorStations(start, destination).catch(() => []);
+  railRouteStations = sortStationsAlongRoute([start, ...stations, destination], start, destination);
+  const coords = railRouteStations.map(station => [station.lat, station.lon]);
+  drawRoute(coords, { color: "#facc15", weight: 6, opacity: 0.85, dashArray: "8 8" });
+  renderStationMarkers(lat, lon);
+  updateStationProgress(lat, lon);
+}
+
+async function fetchRailCorridorStations(start, end) {
+  const pad = 0.7;
+  const south = Math.min(start.lat, end.lat) - pad;
+  const west = Math.min(start.lon, end.lon) - pad;
+  const north = Math.max(start.lat, end.lat) + pad;
+  const east = Math.max(start.lon, end.lon) + pad;
+  const query = `[out:json][timeout:25];(node(${south},${west},${north},${east})["railway"~"station|halt"];way(${south},${west},${north},${east})["railway"="station"];);out center tags;`;
+  const data = await fetchJson("https://overpass-api.de/api/interpreter", { method: "POST", headers: { "Content-Type": "text/plain;charset=UTF-8" }, body: query }, 18000);
+  const lineKm = getDistanceKm(start.lat, start.lon, end.lat, end.lon);
+  return (data.elements || []).map(overpassStationToResult(start.lat, start.lon)).filter(validStation).filter(station => distanceFromSegmentKm(station, start, end) < Math.max(8, lineKm * 0.12)).slice(0, 40);
+}
+
+function sortStationsAlongRoute(stations, start, end) {
+  const seen = new Set();
+  return stations.filter(station => {
+    const key = `${normalizeText(station.name)}-${Number(station.lat).toFixed(3)}-${Number(station.lon).toFixed(3)}`;
+    if (seen.has(key) || !Number.isFinite(station.lat) || !Number.isFinite(station.lon)) return false;
+    seen.add(key);
+    return true;
+  }).map(station => ({ ...station, progress: projectProgress(station, start, end) })).sort((a, b) => a.progress - b.progress);
+}
+
+function renderStationMarkers(lat, lon) {
+  stationMarkers.forEach(marker => map.removeLayer(marker));
+  stationMarkers = [];
+  const currentIndex = getCurrentStationIndex(lat, lon);
+  railRouteStations.forEach((station, index) => {
+    const status = index === railRouteStations.length - 1 ? "destination" : index < currentIndex ? "passed" : index === currentIndex ? "current" : "upcoming";
+    const marker = L.marker([station.lat, station.lon], { icon: stationDivIcon(status) }).bindTooltip(station.name, { direction: "top" }).addTo(map);
+    stationMarkers.push(marker);
+  });
+}
+
+function updateStationProgress(lat, lon) {
+  const currentIndex = getCurrentStationIndex(lat, lon);
+  renderStationMarkers(lat, lon);
+  const current = railRouteStations[currentIndex] || nearestStationObj;
+  const remaining = Math.max(0, getPolylineRemainingKm(railRouteStations, currentIndex, lat, lon));
+  destinationInfoEl.textContent = `${remaining.toFixed(1)} km to ${destination.name}${current?.name ? ` • Current: ${current.name}` : ""}${pnr ? ` • PNR ${pnr}` : ""}`;
+}
+
+function getCurrentStationIndex(lat, lon) {
+  if (!railRouteStations.length) return 0;
+  let closestIndex = 0;
+  let closestDistance = Infinity;
+  railRouteStations.forEach((station, index) => {
+    const distance = getDistanceKm(lat, lon, station.lat, station.lon);
+    if (distance < closestDistance) { closestDistance = distance; closestIndex = index; }
+  });
+  return closestIndex;
+}
+
+function getPolylineRemainingKm(stations, currentIndex, lat, lon) {
+  if (!stations.length || !destination) return 0;
+  let km = getDistanceKm(lat, lon, stations[Math.min(currentIndex + 1, stations.length - 1)].lat, stations[Math.min(currentIndex + 1, stations.length - 1)].lon);
+  for (let i = currentIndex + 1; i < stations.length - 1; i++) km += getDistanceKm(stations[i].lat, stations[i].lon, stations[i + 1].lat, stations[i + 1].lon);
+  return km;
+}
+
+function drawRoute(coords, options) {
+  clearRouteOnly();
+  if (!coords.length) return;
+  routeLine = L.polyline(coords, options).addTo(map);
+  map.fitBounds(routeLine.getBounds().pad(0.2), { animate: true, maxZoom: 13 });
 }
 
 function clearRouteOnly() {
-  if (routeLine && map) {
-    map.removeLayer(routeLine);
-    routeLine = null;
-  }
+  if (routeLine && map) { map.removeLayer(routeLine); routeLine = null; }
+  stationMarkers.forEach(marker => map.removeLayer(marker));
+  stationMarkers = [];
 }
 
 function fuzzyScore(query, text) {
-  query = normalizeText(query);
-  text = normalizeText(text);
-
+  query = normalizeText(query); text = normalizeText(text);
   if (text.startsWith(query)) return 200;
   if (text.includes(query)) return 160;
-
-  let score = 0;
-  let qIndex = 0;
-
-  for (let i = 0; i < text.length && qIndex < query.length; i++) {
-    if (text[i] === query[qIndex]) {
-      score += 12;
-      qIndex++;
-    }
-  }
-
-  const completionBonus = qIndex === query.length ? 80 : 0;
-  return score + completionBonus - Math.abs(text.length - query.length) * 0.2;
+  let score = 0, qIndex = 0;
+  for (let i = 0; i < text.length && qIndex < query.length; i++) if (text[i] === query[qIndex]) { score += 12; qIndex++; }
+  return score + (qIndex === query.length ? 80 : 0) - Math.abs(text.length - query.length) * 0.2;
 }
 
-function normalizeText(text) {
-  return String(text)
-    .toLowerCase()
-    .replace(/\bjunction\b/g, "jn")
-    .replace(/\bjn\.\b/g, "jn")
-    .replace(/[^a-z0-9]/g, "");
-}
+function normalizeText(text) { return String(text || "").toLowerCase().replace(/\bjunction\b/g, "jn").replace(/\bjn\.\b/g, "jn").replace(/[^a-z0-9]/g, ""); }
+function formatEta(minutes) { if (!Number.isFinite(minutes)) return "ETA unavailable"; if (minutes < 1) return "<1 min"; const h = Math.floor(minutes / 60); const m = Math.round(minutes % 60); return h <= 0 ? `${m} min` : `${h}h ${m}m`; }
+function getDistanceKm(lat1, lon1, lat2, lon2) { if (![lat1, lon1, lat2, lon2].every(Number.isFinite)) return NaN; const R = 6371; const dLat = toRad(lat2 - lat1); const dLon = toRad(lon2 - lon1); const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2; return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); }
+function distanceFromSegmentKm(point, start, end) { const progress = clamp(projectProgress(point, start, end), 0, 1); const lat = start.lat + (end.lat - start.lat) * progress; const lon = start.lon + (end.lon - start.lon) * progress; return getDistanceKm(point.lat, point.lon, lat, lon); }
+function projectProgress(point, start, end) { const dx = end.lon - start.lon; const dy = end.lat - start.lat; const lenSq = dx * dx + dy * dy; if (!lenSq) return 0; return ((point.lon - start.lon) * dx + (point.lat - start.lat) * dy) / lenSq; }
+function hasLivePosition() { return Number.isFinite(lastLat) && Number.isFinite(lastLon); }
+function toRad(value) { return value * Math.PI / 180; }
+function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
+function median(values) { const sorted = values.slice().sort((a, b) => a - b); return sorted[Math.floor(sorted.length / 2)] || 0; }
+function weightedAverage(values) { return values.reduce((sum, value, index) => sum + value * (index + 1), 0) / values.reduce((sum, _, index) => sum + index + 1, 0); }
+function escapeHtml(text) { return String(text).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m])); }
+function handleError(err) { stationEl.textContent = err.code === 1 ? "Allow location" : "GPS unavailable"; locationEl.textContent = err.code === 1 ? "Allow location" : "Location unavailable"; }
 
-function formatEta(minutes) {
-  if (!isFinite(minutes)) return "ETA unavailable";
-  if (minutes < 1) return "<1 min";
-
-  const h = Math.floor(minutes / 60);
-  const m = Math.round(minutes % 60);
-
-  if (h <= 0) return `${m} min`;
-  return `${h}h ${m}m`;
-}
-
-function getDistanceKm(lat1, lon1, lat2, lon2) {
-  if (!lat2 || !lon2) return NaN;
-
-  const R = 6371;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) *
-    Math.cos(toRad(lat2)) *
-    Math.sin(dLon / 2) ** 2;
-
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-function toRad(value) {
-  return value * Math.PI / 180;
-}
-
-function escapeHtml(text) {
-  return String(text).replace(/[&<>"']/g, m => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;"
-  }[m]));
-}
-
-function handleError(err) {
-  startBtn.disabled = false;
-  startBtn.textContent =
-    err.code === 1 ? "Allow Location" :
-    err.code === 2 ? "Location Error" :
-    "Try Again";
-}
+window.addEventListener("load", startLocationServices);
 </script>
 
 </body>
